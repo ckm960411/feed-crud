@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { FeedService } from './feed.service';
 import { JwtAuthGuard } from 'src/auth/strategies/jwt-auth.guard';
-import { User } from 'src/auth/decorators/user.decorator';
+import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
+import { OptionalJwtAuthGuard } from 'src/auth/strategies/optional-jwt-auth.guard';
+import { User } from 'src/entities/user.entity';
 
 @Controller('feed')
 export class FeedController {
@@ -18,13 +20,17 @@ export class FeedController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  createFeed(@Body() body: { content: string }, @User('id') userId: number) {
+  createFeed(
+    @Body() body: { content: string },
+    @UserDecorator('id') userId: number,
+  ) {
     return this.feedService.createFeed(userId, body.content);
   }
 
   @Get()
-  findAllFeeds() {
-    return this.feedService.getFeeds();
+  @UseGuards(OptionalJwtAuthGuard)
+  findAllFeeds(@UserDecorator() user: User | null) {
+    return this.feedService.getFeeds(user?.id);
   }
 
   @Get(':id')
@@ -37,14 +43,14 @@ export class FeedController {
   updateFeed(
     @Param('id') id: number,
     @Body() body: { content: string },
-    @User('id') userId: number,
+    @UserDecorator('id') userId: number,
   ) {
     return this.feedService.updateFeed(userId, id, body.content);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  deleteFeed(@Param('id') id: number, @User('id') userId: number) {
+  deleteFeed(@Param('id') id: number, @UserDecorator('id') userId: number) {
     return this.feedService.deleteFeed(userId, id);
   }
 
@@ -53,7 +59,7 @@ export class FeedController {
   createComment(
     @Param('id') id: number,
     @Body() body: { content: string },
-    @User('id') userId: number,
+    @UserDecorator('id') userId: number,
   ) {
     return this.feedService.createComment(userId, id, body.content);
   }
@@ -63,7 +69,7 @@ export class FeedController {
   updateComment(
     @Param('commentId') commentId: number,
     @Body() body: { content: string },
-    @User('id') userId: number,
+    @UserDecorator('id') userId: number,
   ) {
     return this.feedService.updateComment(userId, commentId, body.content);
   }
@@ -72,8 +78,26 @@ export class FeedController {
   @UseGuards(JwtAuthGuard)
   deleteComment(
     @Param('commentId') commentId: number,
-    @User('id') userId: number,
+    @UserDecorator('id') userId: number,
   ) {
     return this.feedService.deleteComment(userId, commentId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':feedId/like')
+  async likeFeed(
+    @UserDecorator('id') userId: number,
+    @Param('feedId') feedId: number,
+  ) {
+    return this.feedService.likeFeed(userId, feedId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':feedId/like')
+  async unlikeFeed(
+    @UserDecorator('id') userId: number,
+    @Param('feedId') feedId: number,
+  ) {
+    return this.feedService.unlikeFeed(userId, feedId);
   }
 }

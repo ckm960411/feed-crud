@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { FeedComment } from 'src/entities/comment.entity';
 import { Feed } from 'src/entities/feed.entity';
+import { Like } from 'src/entities/like.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -16,6 +17,8 @@ export class FeedService {
     private readonly feedRepository: Repository<Feed>,
     @InjectRepository(FeedComment)
     private readonly commentRepository: Repository<FeedComment>,
+    @InjectRepository(Like)
+    private readonly likeRepository: Repository<Like>,
   ) {}
 
   async createFeed(userId: number, content: string) {
@@ -29,13 +32,14 @@ export class FeedService {
     });
   }
 
-  async getFeeds() {
-    return this.feedRepository.find({
+  async getFeeds(userId?: number) {
+    const feeds = await this.feedRepository.find({
       relations: {
         user: true,
         comments: {
           user: true,
         },
+        likes: true,
       },
       select: {
         user: {
@@ -54,8 +58,18 @@ export class FeedService {
             email: true,
           },
         },
+        likes: {
+          id: true,
+          userId: true,
+        },
       },
     });
+
+    return feeds.map((feed) => ({
+      ...feed,
+      likeCount: feed.likes.length,
+      isLiked: feed.likes.some((like) => like.userId === userId),
+    }));
   }
 
   async getFeedById(feedId: number) {
@@ -145,5 +159,46 @@ export class FeedService {
     }
 
     await this.commentRepository.delete(commentId);
+  }
+
+  async likeFeed(userId: number, feedId: number) {
+    await this.getFeedById(feedId);
+
+    const existingLike = await this.likeRepository.findOne({
+      where: {
+        userId,
+        feedId,
+      },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('이미 좋아요를 누른 피드입니다.');
+    }
+
+    await this.likeRepository.save({
+      userId,
+      feedId,
+    });
+
+    return { message: '좋아요가 완료되었습니다.' };
+  }
+
+  async unlikeFeed(userId: number, feedId: number) {
+    await this.getFeedById(feedId);
+
+    const existingLike = await this.likeRepository.findOne({
+      where: {
+        userId,
+        feedId,
+      },
+    });
+
+    if (!existingLike) {
+      throw new BadRequestException('좋아요를 누르지 않은 피드입니다.');
+    }
+
+    await this.likeRepository.delete(existingLike.id);
+
+    return { message: '좋아요가 취소되었습니다.' };
   }
 }

@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
 import { FeedComment } from './comment.entity';
+import { Like } from './like.entity';
 
 @Entity()
 export class Feed extends BaseEntity {
@@ -17,4 +18,7 @@ export class Feed extends BaseEntity {
 
   @OneToMany(() => FeedComment, (comment) => comment.feed)
   comments: FeedComment[];
+
+  @OneToMany(() => Like, (like) => like.feed)
+  likes: Like[];
 }

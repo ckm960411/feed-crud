@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { FeedModule } from './feed/feed.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { FeedModule } from './feed/feed.module';
     AuthModule,
     UserModule,
     FeedModule,
+    RestaurantModule,
   ],
   controllers: [AppController],
   providers: [AppService],

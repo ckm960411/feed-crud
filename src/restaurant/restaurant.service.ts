@@ -7,6 +7,7 @@ import { RestaurantTag } from 'src/entities/restaurant/restaurant-tag.entity';
 import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to-restaurant-tag.entity';
 import { RestaurantPhoto } from 'src/entities/restaurant/restaurant-photo.entity';
 import { map } from 'lodash';
+import { FindAllRestaurantsResDto } from './dto/response/find-all-restaurants.res.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -22,9 +23,19 @@ export class RestaurantService {
   ) {}
 
   async findAll() {
-    return this.restaurantRepository.find({
-      relations: ['photos', 'reviews', 'tags', 'bookmarks'],
+    const restaurants = await this.restaurantRepository.find({
+      relations: {
+        photos: true,
+        restaurantToRestaurantTags: {
+          restaurantTag: true,
+        },
+      },
     });
+
+    return map(
+      restaurants,
+      (restaurant) => new FindAllRestaurantsResDto(restaurant),
+    );
   }
 
   async register(userId: number, dto: RegisterRestaurantReqDto) {

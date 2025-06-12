@@ -1,9 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
+import { map } from 'lodash';
+import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { RestaurantCategory } from 'src/types/enum/restaurant-category.enum';
 
-export class RegisterRestaurantReqDto {
+export class FindAllRestaurantsResDto {
+  @ApiProperty({
+    description: '맛집 ID',
+    example: 1,
+  })
+  @IsNumber()
+  id: number;
+
   @ApiProperty({
     description: '맛집 이름',
     example: '이경문 순대곱창',
@@ -21,38 +29,35 @@ export class RegisterRestaurantReqDto {
 
   @ApiProperty({
     description: '맛집 주소',
-    example: '서울특별시 종로구 종로3길 17',
+    example: '종로3가 언저리',
   })
   @IsString()
   address: string;
 
   @ApiProperty({
     description: '맛집 위도',
-    example: 37.565221,
+    example: 36.7777,
   })
   @IsNumber()
-  @Type(() => Number)
   lat: number;
 
   @ApiProperty({
     description: '맛집 경도',
-    example: 126.978144,
+    example: 128.12312,
   })
   @IsNumber()
-  @Type(() => Number)
   lng: number;
 
   @ApiProperty({
     description: '맛집 설명',
-    example:
-      '이경문 순대곱창은 서울특별시 종로구 종로3길 17에 위치한 맛집입니다.',
+    example: '내 2024년 최고 맛집',
   })
   @IsString()
   description: string;
 
   @ApiProperty({
     description: '맛집 전화번호',
-    example: '0212345678 (하이픈 없이 저장)',
+    example: '0212341234',
   })
   @IsString()
   phoneNumber: string;
@@ -72,18 +77,11 @@ export class RegisterRestaurantReqDto {
   closingTime: string;
 
   @ApiProperty({
-    description: '맛집 라스트오더 시간',
+    description: '맛집 마지막 주문 시간',
     example: '21:00',
   })
   @IsString()
   lastOrderTime: string;
-
-  @ApiProperty({
-    description: '맛집 태그',
-    example: ['순대곱창', '노포', '술맛집'],
-  })
-  @IsArray()
-  tags: string[];
 
   @ApiProperty({
     description: '맛집 사진',
@@ -94,4 +92,30 @@ export class RegisterRestaurantReqDto {
   })
   @IsArray()
   photos: string[];
+
+  @ApiProperty({
+    description: '맛집 태그',
+    example: ['순대곱창', '노포', '술맛집'],
+  })
+  @IsArray()
+  restaurantToRestaurantTags: string[];
+
+  constructor(restaurant: Restaurant) {
+    this.id = restaurant.id;
+    this.name = restaurant.name;
+    this.category = restaurant.category;
+    this.address = restaurant.address;
+    this.lat = restaurant.lat;
+    this.lng = restaurant.lng;
+    this.description = restaurant.description;
+    this.phoneNumber = restaurant.phoneNumber;
+    this.openingTime = restaurant.openingTime;
+    this.closingTime = restaurant.closingTime;
+    this.lastOrderTime = restaurant.lastOrderTime;
+    this.photos = map(restaurant.photos, 'url');
+    this.restaurantToRestaurantTags = map(
+      restaurant.restaurantToRestaurantTags,
+      'restaurantTag.name',
+    );
+  }
 }

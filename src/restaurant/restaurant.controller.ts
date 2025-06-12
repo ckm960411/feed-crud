@@ -5,6 +5,7 @@ import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { RegisterRestaurantReqDto } from './dto/request/register-restaurant.req.dto';
 import { JwtAuthGuard } from 'src/auth/strategies/jwt-auth.guard';
 import { RegisterRestaurantResDto } from './dto/response/register-retaurant.res.dto';
+import { FindAllRestaurantsResDto } from './dto/response/find-all-restaurants.res.dto';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -15,8 +16,14 @@ export class RestaurantController {
     summary: '맛집 목록 조회',
     description: '맛집 목록을 조회합니다.',
   })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 목록 조회 성공',
+    isArray: true,
+    type: FindAllRestaurantsResDto,
+  })
   @Get()
-  async findAll() {
+  async findAll(): Promise<FindAllRestaurantsResDto[]> {
     return this.restaurantService.findAll();
   }
 

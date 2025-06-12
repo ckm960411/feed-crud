@@ -27,6 +27,7 @@ export class RegisterRestaurantResDto {
   @ApiProperty({
     description: '맛집 카테고리',
     example: 'KOREAN',
+    enum: RestaurantCategory,
   })
   @IsEnum(RestaurantCategory)
   category: RestaurantCategory;

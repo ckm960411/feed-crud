@@ -20,16 +20,10 @@ export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurantRepository: Repository<Restaurant>,
-    @InjectRepository(RestaurantTag)
-    private readonly restaurantTagRepository: Repository<RestaurantTag>,
-    @InjectRepository(RestaurantToRestaurantTag)
-    private readonly restaurantToRestaurantTagRepository: Repository<RestaurantToRestaurantTag>,
-    @InjectRepository(RestaurantPhoto)
-    private readonly restaurantPhotoRepository: Repository<RestaurantPhoto>,
     private readonly dataSource: DataSource,
   ) {}
 
-  async findAll() {
+  async findAll(userId?: number) {
     const restaurants = await this.restaurantRepository.find({
       relations: {
         photos: true,
@@ -37,12 +31,15 @@ export class RestaurantService {
           restaurantTag: true,
         },
         reviews: true,
+        bookmarks: {
+          user: true,
+        },
       },
     });
 
     return map(
       restaurants,
-      (restaurant) => new FindAllRestaurantsResDto(restaurant),
+      (restaurant) => new FindAllRestaurantsResDto(restaurant, userId),
     );
   }
 
@@ -61,6 +58,9 @@ export class RestaurantService {
           photos: true,
           user: true,
         },
+        bookmarks: {
+          user: true,
+        },
       },
     });
 
@@ -70,10 +70,7 @@ export class RestaurantService {
       );
     }
 
-    return new FindOneRestaurantResDto(
-      restaurant,
-      userId === restaurant.user.id,
-    );
+    return new FindOneRestaurantResDto(restaurant, userId);
   }
 
   async register(userId: number, dto: RegisterRestaurantReqDto) {

@@ -23,6 +23,7 @@ import { RestaurantReviewService } from './service/restaurant-review.service';
 import { FindReviewResponse } from './dto/response/find-review.response';
 import { UpdateRestaurantReviewReqDto } from './dto/request/upate-restaurant-review.req.dto';
 import { UpdateRestaurantReqDto } from './dto/request/update-restaurant.req.dto';
+import { RestaurantBookmarkService } from './service/restaurant-bookmark.service';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -30,6 +31,7 @@ export class RestaurantController {
   constructor(
     private readonly restaurantService: RestaurantService,
     private readonly restaurantReviewService: RestaurantReviewService,
+    private readonly restaurantBookmarkService: RestaurantBookmarkService,
   ) {}
 
   @ApiOperation({
@@ -43,8 +45,11 @@ export class RestaurantController {
     type: FindAllRestaurantsResDto,
   })
   @Get()
-  async findAll(): Promise<FindAllRestaurantsResDto[]> {
-    return this.restaurantService.findAll();
+  @UseGuards(OptionalJwtAuthGuard)
+  async findAll(
+    @UserDecorator() user: User | null,
+  ): Promise<FindAllRestaurantsResDto[]> {
+    return this.restaurantService.findAll(user?.id);
   }
 
   @ApiOperation({
@@ -212,6 +217,48 @@ export class RestaurantController {
     return this.restaurantReviewService.deleteReview({
       userId,
       reviewId,
+    });
+  }
+
+  @ApiOperation({
+    summary: '맛집 찜하기',
+    description: '특정 맛집을 찜합니다.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '맛집 찜하기 성공',
+    type: Boolean,
+  })
+  @Post(':restaurantId/bookmark')
+  @UseGuards(JwtAuthGuard)
+  async addBookmarkRestaurant(
+    @UserDecorator('id') userId: number,
+    @Param('restaurantId') restaurantId: number,
+  ): Promise<boolean> {
+    return this.restaurantBookmarkService.addBookmarkRestaurant({
+      userId,
+      restaurantId,
+    });
+  }
+
+  @ApiOperation({
+    summary: '맛집 찜 취소',
+    description: '특정 맛집의 찜을 취소합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 찜 취소 성공',
+    type: Boolean,
+  })
+  @Delete(':restaurantId/bookmark')
+  @UseGuards(JwtAuthGuard)
+  async deleteBookmarkRestaurant(
+    @UserDecorator('id') userId: number,
+    @Param('restaurantId') restaurantId: number,
+  ): Promise<boolean> {
+    return this.restaurantBookmarkService.deleteBookmarkRestaurant({
+      userId,
+      restaurantId,
     });
   }
 }

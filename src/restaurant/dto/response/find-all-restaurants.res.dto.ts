@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { map } from 'lodash';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { RestaurantCategory } from 'src/types/enum/restaurant-category.enum';
@@ -107,7 +113,14 @@ export class FindAllRestaurantsResDto {
   @IsNumber()
   reviewCount: number;
 
-  constructor(restaurant: Restaurant) {
+  @ApiProperty({
+    description: '맛집 찜 여부',
+    example: true,
+  })
+  @IsBoolean()
+  isBookmarked: boolean;
+
+  constructor(restaurant: Restaurant, userId?: number) {
     this.id = restaurant.id;
     this.name = restaurant.name;
     this.category = restaurant.category;
@@ -125,5 +138,8 @@ export class FindAllRestaurantsResDto {
       'restaurantTag.name',
     );
     this.reviewCount = restaurant.reviews.length;
+    this.isBookmarked = restaurant.bookmarks.some(
+      (bookmark) => bookmark.user.id === userId,
+    );
   }
 }

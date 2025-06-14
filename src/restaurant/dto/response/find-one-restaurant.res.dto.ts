@@ -141,9 +141,14 @@ export class FindOneRestaurantResDto {
   @IsNumber()
   reviewCount: number;
 
-  // TODO: 리뷰 구현시 리뷰도 응답에 추가
-  // TODO: 북마크 구현시 북마크 여부 추가
-  constructor(restaurant: Restaurant, isWrittenByMe: boolean) {
+  @ApiProperty({
+    description: '맛집 찜 여부',
+    example: true,
+  })
+  @IsBoolean()
+  isBookmarked: boolean;
+
+  constructor(restaurant: Restaurant, userId?: number) {
     this.id = restaurant.id;
     this.name = restaurant.name;
     this.category = restaurant.category;
@@ -160,10 +165,13 @@ export class FindOneRestaurantResDto {
       restaurant.restaurantToRestaurantTags,
       'restaurantTag.name',
     );
-    this.isWrittenByMe = isWrittenByMe;
+    this.isWrittenByMe = userId === restaurant.user.id;
     this.reviews = map(restaurant.reviews, (review) => {
       return new FindReviewResponse(review);
     });
     this.reviewCount = restaurant.reviews.length;
+    this.isBookmarked = restaurant.bookmarks.some(
+      (bookmark) => bookmark.user.id === userId,
+    );
   }
 }

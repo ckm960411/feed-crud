@@ -13,7 +13,7 @@ import { RestaurantPhoto } from 'src/entities/restaurant/restaurant-photo.entity
 import { map } from 'lodash';
 import { FindAllRestaurantsResDto } from '../dto/response/find-all-restaurants.res.dto';
 import { FindOneRestaurantResDto } from '../dto/response/find-one-restaurant.res.dto';
-import { UpdateRestaurantReqDto } from './dto/request/update-restaurant.req.dto';
+import { UpdateRestaurantReqDto } from '../dto/request/update-restaurant.req.dto';
 
 @Injectable()
 export class RestaurantService {

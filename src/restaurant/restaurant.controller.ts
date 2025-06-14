@@ -22,7 +22,7 @@ import { CreateRestaurantReviewReqDto } from './dto/request/create-review.req.dt
 import { RestaurantReviewService } from './service/restaurant-review.service';
 import { FindReviewResponse } from './dto/response/find-review.response';
 import { UpdateRestaurantReviewReqDto } from './dto/request/upate-restaurant-review.req.dto';
-import { UpdateRestaurantReqDto } from './service/dto/request/update-restaurant.req.dto';
+import { UpdateRestaurantReqDto } from './dto/request/update-restaurant.req.dto';
 
 @ApiTags('맛집')
 @Controller('restaurants')

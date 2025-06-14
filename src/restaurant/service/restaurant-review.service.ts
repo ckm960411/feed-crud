@@ -16,12 +16,8 @@ import { UpdateRestaurantReviewReqDto } from '../dto/request/upate-restaurant-re
 @Injectable()
 export class RestaurantReviewService {
   constructor(
-    @InjectRepository(Restaurant)
-    private readonly restaurantRepository: Repository<Restaurant>,
     @InjectRepository(RestaurantReview)
     private readonly restaurantReviewRepository: Repository<RestaurantReview>,
-    @InjectRepository(RestaurantReviewPhoto)
-    private readonly restaurantReviewPhotoRepository: Repository<RestaurantReviewPhoto>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -171,6 +167,51 @@ export class RestaurantReviewService {
         },
       );
       return new FindReviewResponse(updatedReview);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async deleteReview({
+    userId,
+    reviewId,
+  }: {
+    userId: number;
+    reviewId: number;
+  }) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const review = await queryRunner.manager.findOne(RestaurantReview, {
+        where: { id: reviewId },
+        relations: {
+          user: true,
+        },
+      });
+
+      if (!review) {
+        throw new NotFoundException(`ID ${reviewId} 리뷰를 찾을 수 없습니다.`);
+      }
+
+      if (review.user.id !== userId) {
+        throw new ForbiddenException('리뷰 삭제 권한이 없습니다.');
+      }
+
+      await queryRunner.manager.delete(RestaurantReviewPhoto, {
+        review: { id: review.id },
+      });
+
+      await queryRunner.manager.delete(RestaurantReview, {
+        id: reviewId,
+      });
+
+      await queryRunner.commitTransaction();
+      return true;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

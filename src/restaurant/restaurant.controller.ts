@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -152,6 +153,27 @@ export class RestaurantController {
       userId,
       reviewId,
       dto,
+    });
+  }
+
+  @ApiOperation({
+    summary: '맛집 리뷰 삭제',
+    description: '맛집 리뷰를 삭제합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 리뷰 삭제 성공',
+    type: Boolean,
+  })
+  @Delete('/reviews/:reviewId')
+  @UseGuards(JwtAuthGuard)
+  async deleteReview(
+    @UserDecorator('id') userId: number,
+    @Param('reviewId') reviewId: number,
+  ) {
+    return this.restaurantReviewService.deleteReview({
+      userId,
+      reviewId,
     });
   }
 }

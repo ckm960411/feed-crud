@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { RestaurantService } from './restaurant.service';
+import { RestaurantService } from './service/restaurant.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { RegisterRestaurantReqDto } from './dto/request/register-restaurant.req.dto';

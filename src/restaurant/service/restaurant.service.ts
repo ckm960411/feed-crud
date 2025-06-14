@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { Repository } from 'typeorm';
-import { RegisterRestaurantReqDto } from './dto/request/register-restaurant.req.dto';
+import { RegisterRestaurantReqDto } from '../dto/request/register-restaurant.req.dto';
 import { RestaurantTag } from 'src/entities/restaurant/restaurant-tag.entity';
 import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to-restaurant-tag.entity';
 import { RestaurantPhoto } from 'src/entities/restaurant/restaurant-photo.entity';
 import { map } from 'lodash';
-import { FindAllRestaurantsResDto } from './dto/response/find-all-restaurants.res.dto';
-import { FindOneRestaurantResDto } from './dto/response/find-one-restaurant.res.dto';
+import { FindAllRestaurantsResDto } from '../dto/response/find-all-restaurants.res.dto';
+import { FindOneRestaurantResDto } from '../dto/response/find-one-restaurant.res.dto';
 
 @Injectable()
 export class RestaurantService {

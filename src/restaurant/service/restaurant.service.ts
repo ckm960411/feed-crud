@@ -30,6 +30,7 @@ export class RestaurantService {
         restaurantToRestaurantTags: {
           restaurantTag: true,
         },
+        reviews: true,
       },
     });
 

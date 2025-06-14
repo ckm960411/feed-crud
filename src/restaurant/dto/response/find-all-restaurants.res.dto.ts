@@ -100,6 +100,13 @@ export class FindAllRestaurantsResDto {
   @IsArray()
   restaurantToRestaurantTags: string[];
 
+  @ApiProperty({
+    description: '리뷰 개수',
+    example: 1,
+  })
+  @IsNumber()
+  reviewCount: number;
+
   constructor(restaurant: Restaurant) {
     this.id = restaurant.id;
     this.name = restaurant.name;
@@ -117,5 +124,6 @@ export class FindAllRestaurantsResDto {
       restaurant.restaurantToRestaurantTags,
       'restaurantTag.name',
     );
+    this.reviewCount = restaurant.reviews.length;
   }
 }

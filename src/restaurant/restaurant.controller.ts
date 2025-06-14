@@ -9,11 +9,16 @@ import { FindAllRestaurantsResDto } from './dto/response/find-all-restaurants.re
 import { OptionalJwtAuthGuard } from 'src/auth/strategies/optional-jwt-auth.guard';
 import { User } from 'src/entities/user.entity';
 import { FindOneRestaurantResDto } from './dto/response/find-one-restaurant.res.dto';
+import { CreateRestaurantReviewReqDto } from './dto/request/create-review.req.dto';
+import { RestaurantReviewService } from './service/restaurant-review.service';
 
 @ApiTags('맛집')
 @Controller('restaurants')
 export class RestaurantController {
-  constructor(private readonly restaurantService: RestaurantService) {}
+  constructor(
+    private readonly restaurantService: RestaurantService,
+    private readonly restaurantReviewService: RestaurantReviewService,
+  ) {}
 
   @ApiOperation({
     summary: '맛집 목록 조회',
@@ -64,5 +69,23 @@ export class RestaurantController {
     @Body() dto: RegisterRestaurantReqDto,
   ): Promise<RegisterRestaurantResDto> {
     return this.restaurantService.register(userId, dto);
+  }
+
+  @ApiOperation({
+    summary: '맛집 리뷰 등록',
+    description: '특정 맛집에 대한 리뷰를 작성합니다.',
+  })
+  @Post(':restaurantId/reviews')
+  @UseGuards(JwtAuthGuard)
+  async createReview(
+    @UserDecorator('id') userId: number,
+    @Param('restaurantId') restaurantId: number,
+    @Body() dto: CreateRestaurantReviewReqDto,
+  ) {
+    return this.restaurantReviewService.createReview({
+      userId,
+      restaurantId,
+      dto,
+    });
   }
 }

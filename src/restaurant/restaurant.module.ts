@@ -10,6 +10,7 @@ import { RestaurantReviewPhoto } from 'src/entities/restaurant/restaurant-review
 import { RestaurantTag } from 'src/entities/restaurant/restaurant-tag.entity';
 import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to-restaurant-tag.entity';
 import { User } from 'src/auth/decorators/user.decorator';
+import { RestaurantReviewService } from './service/restaurant-review.service';
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { User } from 'src/auth/decorators/user.decorator';
     ]),
   ],
   controllers: [RestaurantController],
-  providers: [RestaurantService],
+  providers: [RestaurantService, RestaurantReviewService],
 })
 export class RestaurantModule {}

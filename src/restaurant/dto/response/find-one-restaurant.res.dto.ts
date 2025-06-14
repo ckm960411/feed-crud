@@ -113,6 +113,41 @@ export class FindOneRestaurantResDto {
   @IsBoolean()
   isWrittenByMe: boolean;
 
+  @ApiProperty({
+    description: '리뷰 목록',
+    example: [
+      {
+        id: 1,
+        userId: 1,
+        userName: '홍길동',
+        userEmail: 'hong@example.com',
+        rating: 5,
+        content: '맛있어요!',
+        photos: [
+          'https://example.com/photo1.jpg',
+          'https://example.com/photo2.jpg',
+        ],
+      },
+    ],
+  })
+  @IsArray()
+  reviews: {
+    id: number;
+    userId: number;
+    userName: string;
+    userEmail: string;
+    rating: number;
+    content: string;
+    photos: string[];
+  }[];
+
+  @ApiProperty({
+    description: '리뷰 개수',
+    example: 1,
+  })
+  @IsNumber()
+  reviewCount: number;
+
   // TODO: 리뷰 구현시 리뷰도 응답에 추가
   // TODO: 북마크 구현시 북마크 여부 추가
   constructor(restaurant: Restaurant, isWrittenByMe: boolean) {
@@ -133,5 +168,15 @@ export class FindOneRestaurantResDto {
       'restaurantTag.name',
     );
     this.isWrittenByMe = isWrittenByMe;
+    this.reviews = map(restaurant.reviews, (review) => ({
+      id: review.id,
+      userId: review.user.id,
+      userName: review.user.name,
+      userEmail: review.user.email,
+      rating: review.rating,
+      content: review.content,
+      photos: map(review.photos, 'url'),
+    }));
+    this.reviewCount = restaurant.reviews.length;
   }
 }

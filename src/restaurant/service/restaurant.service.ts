@@ -50,9 +50,10 @@ export class RestaurantService {
           restaurantTag: true,
         },
         user: true,
-        // reviews: {
-        //   photos: true,
-        // },
+        reviews: {
+          photos: true,
+          user: true,
+        },
       },
     });
 

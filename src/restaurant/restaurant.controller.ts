@@ -103,6 +103,24 @@ export class RestaurantController {
   }
 
   @ApiOperation({
+    summary: '맛집 삭제',
+    description: '맛집을 삭제합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 삭제 성공',
+    type: Boolean,
+  })
+  @Delete(':restaurantId')
+  @UseGuards(JwtAuthGuard)
+  async delete(
+    @UserDecorator('id') userId: number,
+    @Param('restaurantId') restaurantId: number,
+  ): Promise<boolean> {
+    return this.restaurantService.delete({ userId, restaurantId });
+  }
+
+  @ApiOperation({
     summary: '맛집 리뷰 목록 조회',
     description: '특정 맛집에 대한 리뷰 목록을 조회합니다.',
   })

@@ -27,14 +27,18 @@ export class RestaurantReview extends BaseEntity {
   @ApiProperty({
     description: '작성 유저',
   })
-  @ManyToOne(() => User, (user) => user.restaurantReviews)
+  @ManyToOne(() => User, (user) => user.restaurantReviews, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   user: User;
 
   @ApiProperty({
     description: '맛집',
   })
-  @ManyToOne(() => Restaurant, (restaurant) => restaurant.reviews)
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.reviews, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   restaurant: Restaurant;
 

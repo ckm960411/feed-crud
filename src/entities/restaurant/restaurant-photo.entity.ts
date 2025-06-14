@@ -14,7 +14,9 @@ export class RestaurantPhoto extends BaseEntity {
   @Column()
   url: string;
 
-  @ManyToOne(() => Restaurant, (restaurant) => restaurant.photos)
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.photos, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   restaurant: Restaurant;
 }

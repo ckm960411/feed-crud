@@ -17,7 +17,9 @@ export class RestaurantReviewPhoto extends BaseEntity {
   @ApiProperty({
     description: '리뷰',
   })
-  @ManyToOne(() => RestaurantReview, (review) => review.photos)
+  @ManyToOne(() => RestaurantReview, (review) => review.photos, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   review: RestaurantReview;
 }

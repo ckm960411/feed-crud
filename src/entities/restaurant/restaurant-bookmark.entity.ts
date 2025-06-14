@@ -5,11 +5,13 @@ import { Restaurant } from './restaurant.entity';
 
 @Entity()
 export class RestaurantBookmark extends BaseEntity {
-  @ManyToOne(() => User, (user) => user.bookmarks)
+  @ManyToOne(() => User, (user) => user.bookmarks, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
 
-  @ManyToOne(() => Restaurant, (restaurant) => restaurant.bookmarks)
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.bookmarks, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   restaurant: Restaurant;
 }

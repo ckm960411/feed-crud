@@ -8,6 +8,7 @@ export class RestaurantToRestaurantTag extends BaseEntity {
   @ManyToOne(
     () => Restaurant,
     (restaurant) => restaurant.restaurantToRestaurantTags,
+    { onDelete: 'CASCADE' },
   )
   @JoinColumn()
   restaurant: Restaurant;
@@ -15,6 +16,7 @@ export class RestaurantToRestaurantTag extends BaseEntity {
   @ManyToOne(
     () => RestaurantTag,
     (restaurantTag) => restaurantTag.restaurantToRestaurantTags,
+    { onDelete: 'CASCADE' },
   )
   @JoinColumn()
   restaurantTag: RestaurantTag;

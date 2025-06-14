@@ -260,4 +260,49 @@ export class RestaurantService {
       await queryRunner.release();
     }
   }
+
+  async delete({
+    userId,
+    restaurantId,
+  }: {
+    userId: number;
+    restaurantId: number;
+  }) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const restaurant = await queryRunner.manager.findOne(Restaurant, {
+        where: { id: restaurantId },
+        relations: {
+          user: true,
+        },
+      });
+
+      if (!restaurant) {
+        throw new NotFoundException(
+          `ID ${restaurantId} 맛집을 찾을 수 없습니다.`,
+        );
+      }
+
+      if (restaurant.user.id !== userId) {
+        throw new ForbiddenException(
+          `ID ${restaurantId} 맛집을 삭제할 권한이 없습니다.`,
+        );
+      }
+
+      await queryRunner.manager.delete(Restaurant, { id: restaurantId });
+
+      await queryRunner.commitTransaction();
+      return true;
+    } catch (error) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }

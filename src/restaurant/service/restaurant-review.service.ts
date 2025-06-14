@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RestaurantReviewPhoto } from 'src/entities/restaurant/restaurant-review-photo.entity';
 import { RestaurantReview } from 'src/entities/restaurant/restaurant-review.entity';
@@ -7,6 +11,7 @@ import { CreateRestaurantReviewReqDto } from '../dto/request/create-review.req.d
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { map } from 'lodash';
 import { FindReviewResponse } from '../dto/response/find-review.response';
+import { UpdateRestaurantReviewReqDto } from '../dto/request/upate-restaurant-review.req.dto';
 
 @Injectable()
 export class RestaurantReviewService {
@@ -96,6 +101,76 @@ export class RestaurantReviewService {
 
       await queryRunner.commitTransaction();
       return review;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateReview({
+    userId,
+    reviewId,
+    dto,
+  }: {
+    userId: number;
+    reviewId: number;
+    dto: UpdateRestaurantReviewReqDto;
+  }) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const review = await queryRunner.manager.findOne(RestaurantReview, {
+        where: { id: reviewId },
+        relations: {
+          user: true,
+          photos: true,
+        },
+      });
+
+      if (!review) {
+        throw new NotFoundException(`ID ${reviewId} 리뷰를 찾을 수 없습니다.`);
+      }
+
+      if (review.user.id !== userId) {
+        throw new ForbiddenException('리뷰 수정 권한이 없습니다.');
+      }
+
+      const { rating, content, photos } = dto;
+
+      review.rating = rating;
+      review.content = content;
+
+      await queryRunner.manager.save(review);
+
+      await queryRunner.manager.delete(RestaurantReviewPhoto, {
+        review: { id: review.id },
+      });
+
+      const reviewPhotos = map(photos, (url) => {
+        return queryRunner.manager.create(RestaurantReviewPhoto, {
+          review: { id: review.id },
+          url,
+        });
+      });
+
+      await queryRunner.manager.save(reviewPhotos);
+
+      await queryRunner.commitTransaction();
+      const updatedReview = await queryRunner.manager.findOne(
+        RestaurantReview,
+        {
+          where: { id: reviewId },
+          relations: {
+            user: true,
+            photos: true,
+          },
+        },
+      );
+      return new FindReviewResponse(updatedReview);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

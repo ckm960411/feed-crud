@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { RestaurantService } from './service/restaurant.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
@@ -12,6 +20,7 @@ import { FindOneRestaurantResDto } from './dto/response/find-one-restaurant.res.
 import { CreateRestaurantReviewReqDto } from './dto/request/create-review.req.dto';
 import { RestaurantReviewService } from './service/restaurant-review.service';
 import { FindReviewResponse } from './dto/response/find-review.response';
+import { UpdateRestaurantReviewReqDto } from './dto/request/upate-restaurant-review.req.dto';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -119,6 +128,29 @@ export class RestaurantController {
     return this.restaurantReviewService.createReview({
       userId,
       restaurantId,
+      dto,
+    });
+  }
+
+  @ApiOperation({
+    summary: '맛집 리뷰 수정',
+    description: '특정 리뷰를 수정합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 리뷰 수정 성공',
+    type: FindReviewResponse,
+  })
+  @Patch('/reviews/:reviewId')
+  @UseGuards(JwtAuthGuard)
+  async updateReview(
+    @UserDecorator('id') userId: number,
+    @Param('reviewId') reviewId: number,
+    @Body() dto: UpdateRestaurantReviewReqDto,
+  ) {
+    return this.restaurantReviewService.updateReview({
+      userId,
+      reviewId,
       dto,
     });
   }

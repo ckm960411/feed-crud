@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AwsService } from './aws.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GenerateUploadUrlReqDto } from './dto/request/generate-upload-url.req.dto';
 import { GenerateUploadUrlResDto } from './dto/response/generate-upload-url.res.dto';
+import { JwtAuthGuard } from 'src/auth/strategies/jwt-auth.guard';
 
 @ApiTags('AWS')
 @Controller('aws')
@@ -20,6 +21,7 @@ export class AwsController {
     description: '이미지 업로드용 presigned URL 발급 성공',
     type: GenerateUploadUrlResDto,
   })
+  @UseGuards(JwtAuthGuard)
   async getPresignedUrl(
     @Body() dto: GenerateUploadUrlReqDto,
   ): Promise<GenerateUploadUrlResDto> {

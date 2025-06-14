@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { FeedModule } from './feed/feed.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
+import { AwsModule } from './aws/aws.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RestaurantModule } from './restaurant/restaurant.module';
     UserModule,
     FeedModule,
     RestaurantModule,
+    AwsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

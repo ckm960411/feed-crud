@@ -22,6 +22,7 @@ import { CreateRestaurantReviewReqDto } from './dto/request/create-review.req.dt
 import { RestaurantReviewService } from './service/restaurant-review.service';
 import { FindReviewResponse } from './dto/response/find-review.response';
 import { UpdateRestaurantReviewReqDto } from './dto/request/upate-restaurant-review.req.dto';
+import { UpdateRestaurantReqDto } from './service/dto/request/update-restaurant.req.dto';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -80,6 +81,25 @@ export class RestaurantController {
     @Body() dto: RegisterRestaurantReqDto,
   ): Promise<RegisterRestaurantResDto> {
     return this.restaurantService.register(userId, dto);
+  }
+
+  @ApiOperation({
+    summary: '맛집 수정',
+    description: '맛집 정보를 수정합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 수정 성공',
+    type: FindOneRestaurantResDto,
+  })
+  @Patch(':restaurantId')
+  @UseGuards(JwtAuthGuard)
+  async update(
+    @UserDecorator('id') userId: number,
+    @Param('restaurantId') restaurantId: number,
+    @Body() dto: UpdateRestaurantReqDto,
+  ): Promise<FindOneRestaurantResDto> {
+    return this.restaurantService.update({ userId, restaurantId, dto });
   }
 
   @ApiOperation({

@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { RegisterRestaurantReqDto } from '../dto/request/register-restaurant.req.dto';
 import { RestaurantTag } from 'src/entities/restaurant/restaurant-tag.entity';
 import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to-restaurant-tag.entity';
@@ -9,6 +13,7 @@ import { RestaurantPhoto } from 'src/entities/restaurant/restaurant-photo.entity
 import { map } from 'lodash';
 import { FindAllRestaurantsResDto } from '../dto/response/find-all-restaurants.res.dto';
 import { FindOneRestaurantResDto } from '../dto/response/find-one-restaurant.res.dto';
+import { UpdateRestaurantReqDto } from './dto/request/update-restaurant.req.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -21,6 +26,7 @@ export class RestaurantService {
     private readonly restaurantToRestaurantTagRepository: Repository<RestaurantToRestaurantTag>,
     @InjectRepository(RestaurantPhoto)
     private readonly restaurantPhotoRepository: Repository<RestaurantPhoto>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll() {
@@ -71,61 +77,187 @@ export class RestaurantService {
   }
 
   async register(userId: number, dto: RegisterRestaurantReqDto) {
-    const {
-      name,
-      category,
-      address,
-      lat,
-      lng,
-      description,
-      phoneNumber,
-      openingTime,
-      closingTime,
-      lastOrderTime,
-      tags: tagNames,
-      photos,
-    } = dto;
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const restaurant = this.restaurantRepository.create({
-      name,
-      category,
-      address,
-      lat,
-      lng,
-      description,
-      phoneNumber,
-      openingTime,
-      closingTime,
-      lastOrderTime,
-      user: { id: userId },
-    });
-    await this.restaurantRepository.save(restaurant);
+    try {
+      const {
+        name,
+        category,
+        address,
+        lat,
+        lng,
+        description,
+        phoneNumber,
+        openingTime,
+        closingTime,
+        lastOrderTime,
+        tags: tagNames,
+        photos,
+      } = dto;
 
-    for (const tagName of tagNames) {
-      let tag = await this.restaurantTagRepository.findOne({
-        where: {
-          name: tagName,
+      const restaurant = queryRunner.manager.create(Restaurant, {
+        name,
+        category,
+        address,
+        lat,
+        lng,
+        description,
+        phoneNumber,
+        openingTime,
+        closingTime,
+        lastOrderTime,
+        user: { id: userId },
+      });
+
+      await queryRunner.manager.save(restaurant);
+
+      for (const tagName of tagNames) {
+        let tag = await queryRunner.manager.findOne(RestaurantTag, {
+          where: {
+            name: tagName,
+          },
+        });
+
+        if (!tag) {
+          tag = queryRunner.manager.create(RestaurantTag, { name: tagName });
+          await queryRunner.manager.save(RestaurantTag, tag);
+        }
+
+        await queryRunner.manager.save(RestaurantToRestaurantTag, {
+          restaurant: { id: restaurant.id },
+          restaurantTag: { id: tag.id },
+        });
+      }
+
+      await queryRunner.manager.save(
+        RestaurantPhoto,
+        map(photos, (photo) => ({
+          url: photo,
+          restaurant: { id: restaurant.id },
+        })),
+      );
+
+      await queryRunner.commitTransaction();
+      return restaurant;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async update({
+    userId,
+    restaurantId,
+    dto,
+  }: {
+    userId: number;
+    restaurantId: number;
+    dto: UpdateRestaurantReqDto;
+  }) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const {
+        name,
+        category,
+        address,
+        lat,
+        lng,
+        description,
+        phoneNumber,
+        openingTime,
+        closingTime,
+        lastOrderTime,
+        tags: tagNames,
+        photos,
+      } = dto;
+
+      const restaurant = await queryRunner.manager.findOne(Restaurant, {
+        where: { id: restaurantId },
+        relations: {
+          user: true,
         },
       });
 
-      if (!tag) {
-        tag = this.restaurantTagRepository.create({ name: tagName });
-        await this.restaurantTagRepository.save(tag);
+      if (!restaurant) {
+        throw new NotFoundException(
+          `ID ${restaurantId} 맛집을 찾을 수 없습니다.`,
+        );
       }
 
-      await this.restaurantToRestaurantTagRepository.save({
-        restaurant: { id: restaurant.id },
-        restaurantTag: { id: tag.id },
-      });
+      if (restaurant.user.id !== userId) {
+        throw new ForbiddenException(
+          `ID ${restaurantId} 맛집을 수정할 권한이 없습니다.`,
+        );
+      }
+
+      restaurant.name = name;
+      restaurant.category = category;
+      restaurant.address = address;
+      restaurant.lat = lat;
+      restaurant.lng = lng;
+      restaurant.description = description;
+      restaurant.phoneNumber = phoneNumber;
+      restaurant.openingTime = openingTime;
+      restaurant.closingTime = closingTime;
+      restaurant.lastOrderTime = lastOrderTime;
+
+      await queryRunner.manager.save(restaurant);
+
+      if ('tags' in dto) {
+        await queryRunner.manager.delete(RestaurantToRestaurantTag, {
+          restaurant: { id: restaurant.id },
+        });
+
+        for (const tagName of tagNames) {
+          let tag = await queryRunner.manager.findOne(RestaurantTag, {
+            where: {
+              name: tagName,
+            },
+          });
+
+          if (!tag) {
+            tag = queryRunner.manager.create(RestaurantTag, { name: tagName });
+            await queryRunner.manager.save(RestaurantTag, tag);
+          }
+
+          await queryRunner.manager.save(RestaurantToRestaurantTag, {
+            restaurant: { id: restaurant.id },
+            restaurantTag: { id: tag.id },
+          });
+        }
+      }
+
+      if ('photos' in dto) {
+        await queryRunner.manager.delete(RestaurantPhoto, {
+          restaurant: { id: restaurant.id },
+        });
+
+        await queryRunner.manager.save(
+          RestaurantPhoto,
+          map(photos, (photo) => ({
+            url: photo,
+            restaurant: { id: restaurant.id },
+          })),
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      return await this.findOne(restaurantId, userId);
+    } catch (error) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    await this.restaurantPhotoRepository.save(
-      map(photos, (photo) => ({
-        url: photo,
-        restaurant: { id: restaurant.id },
-      })),
-    );
-
-    return restaurant;
   }
 }

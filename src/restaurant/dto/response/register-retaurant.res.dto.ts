@@ -54,6 +54,14 @@ export class RegisterRestaurantResDto {
   lng: number;
 
   @ApiProperty({
+    description: '맛집 설명',
+    example:
+      '이경문 순대곱창은 서울특별시 종로구 종로3길 17에 위치한 맛집입니다.',
+  })
+  @IsString()
+  description: string;
+
+  @ApiProperty({
     description: '맛집 전화번호',
     example: '0212341234',
   })

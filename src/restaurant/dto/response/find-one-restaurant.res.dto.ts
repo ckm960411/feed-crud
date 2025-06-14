@@ -9,6 +9,7 @@ import {
 import { map } from 'lodash';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { RestaurantCategory } from 'src/types/enum/restaurant-category.enum';
+import { FindReviewResponse } from './find-review.response';
 
 export class FindOneRestaurantResDto {
   @ApiProperty({
@@ -131,15 +132,7 @@ export class FindOneRestaurantResDto {
     ],
   })
   @IsArray()
-  reviews: {
-    id: number;
-    userId: number;
-    userName: string;
-    userEmail: string;
-    rating: number;
-    content: string;
-    photos: string[];
-  }[];
+  reviews: FindReviewResponse[];
 
   @ApiProperty({
     description: '리뷰 개수',
@@ -168,15 +161,9 @@ export class FindOneRestaurantResDto {
       'restaurantTag.name',
     );
     this.isWrittenByMe = isWrittenByMe;
-    this.reviews = map(restaurant.reviews, (review) => ({
-      id: review.id,
-      userId: review.user.id,
-      userName: review.user.name,
-      userEmail: review.user.email,
-      rating: review.rating,
-      content: review.content,
-      photos: map(review.photos, 'url'),
-    }));
+    this.reviews = map(restaurant.reviews, (review) => {
+      return new FindReviewResponse(review);
+    });
     this.reviewCount = restaurant.reviews.length;
   }
 }

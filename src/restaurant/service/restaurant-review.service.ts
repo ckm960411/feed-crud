@@ -6,6 +6,7 @@ import { Repository, DataSource } from 'typeorm';
 import { CreateRestaurantReviewReqDto } from '../dto/request/create-review.req.dto';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { map } from 'lodash';
+import { FindReviewResponse } from '../dto/response/find-review.response';
 
 @Injectable()
 export class RestaurantReviewService {
@@ -18,6 +19,36 @@ export class RestaurantReviewService {
     private readonly restaurantReviewPhotoRepository: Repository<RestaurantReviewPhoto>,
     private readonly dataSource: DataSource,
   ) {}
+
+  async findAllReviewsByRestaurantId(restaurantId: number) {
+    const reviews = await this.restaurantReviewRepository.find({
+      where: { restaurant: { id: restaurantId } },
+      relations: {
+        user: true,
+        photos: true,
+      },
+    });
+
+    return map(reviews, (review) => {
+      return new FindReviewResponse(review);
+    });
+  }
+
+  async findOneReviewById(reviewId: number) {
+    const review = await this.restaurantReviewRepository.findOne({
+      where: { id: reviewId },
+      relations: {
+        user: true,
+        photos: true,
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException(`ID ${reviewId} 리뷰를 찾을 수 없습니다.`);
+    }
+
+    return new FindReviewResponse(review);
+  }
 
   async createReview({
     userId,

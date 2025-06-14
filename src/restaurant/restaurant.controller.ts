@@ -11,6 +11,7 @@ import { User } from 'src/entities/user.entity';
 import { FindOneRestaurantResDto } from './dto/response/find-one-restaurant.res.dto';
 import { CreateRestaurantReviewReqDto } from './dto/request/create-review.req.dto';
 import { RestaurantReviewService } from './service/restaurant-review.service';
+import { FindReviewResponse } from './dto/response/find-review.response';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -69,6 +70,39 @@ export class RestaurantController {
     @Body() dto: RegisterRestaurantReqDto,
   ): Promise<RegisterRestaurantResDto> {
     return this.restaurantService.register(userId, dto);
+  }
+
+  @ApiOperation({
+    summary: '맛집 리뷰 목록 조회',
+    description: '특정 맛집에 대한 리뷰 목록을 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 리뷰 목록 조회 성공',
+    isArray: true,
+    type: FindReviewResponse,
+  })
+  @Get(':restaurantId/reviews')
+  async findAllReviewsByRestaurantId(
+    @Param('restaurantId') restaurantId: number,
+  ) {
+    return this.restaurantReviewService.findAllReviewsByRestaurantId(
+      restaurantId,
+    );
+  }
+
+  @ApiOperation({
+    summary: '맛집 리뷰 단건 조회',
+    description: '특정 리뷰 정보를 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 리뷰 상세 조회 성공',
+    type: FindReviewResponse,
+  })
+  @Get('/reviews/:reviewId')
+  async findOneReviewById(@Param('reviewId') reviewId: number) {
+    return this.restaurantReviewService.findOneReviewById(reviewId);
   }
 
   @ApiOperation({

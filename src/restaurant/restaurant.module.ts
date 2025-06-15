@@ -12,6 +12,7 @@ import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to
 import { User } from 'src/auth/decorators/user.decorator';
 import { RestaurantReviewService } from './service/restaurant-review.service';
 import { RestaurantBookmarkService } from './service/restaurant-bookmark.service';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RestaurantBookmarkService } from './service/restaurant-bookmark.service
       RestaurantToRestaurantTag,
       User,
     ]),
+    NotificationModule,
   ],
   controllers: [RestaurantController],
   providers: [

@@ -7,6 +7,7 @@ import { Restaurant } from './restaurant/restaurant.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { RestaurantBookmark } from './restaurant/restaurant-bookmark.entity';
 import { RestaurantReview } from './restaurant/restaurant-review.entity';
+import { Notification } from './notification.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -49,4 +50,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Like, (like) => like.user)
   likes: Like[];
+
+  @OneToMany(() => Notification, (notification) => notification.recipient)
+  notifications: Notification[];
 }

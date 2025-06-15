@@ -12,6 +12,8 @@ import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { map } from 'lodash';
 import { FindReviewResponse } from '../dto/response/find-review.response';
 import { UpdateRestaurantReviewReqDto } from '../dto/request/upate-restaurant-review.req.dto';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/entities/notification.entity';
 
 @Injectable()
 export class RestaurantReviewService {
@@ -19,6 +21,7 @@ export class RestaurantReviewService {
     @InjectRepository(RestaurantReview)
     private readonly restaurantReviewRepository: Repository<RestaurantReview>,
     private readonly dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findAllReviewsByRestaurantId(restaurantId: number) {
@@ -67,6 +70,7 @@ export class RestaurantReviewService {
     try {
       const restaurant = await queryRunner.manager.findOne(Restaurant, {
         where: { id: restaurantId },
+        relations: ['user'],
       });
 
       if (!restaurant) {
@@ -94,6 +98,17 @@ export class RestaurantReviewService {
       });
 
       await queryRunner.manager.save(reviewPhotos);
+
+      // 맛집 주인에게 알림 발송
+      if (restaurant.user.id !== userId) {
+        await this.notificationService.createNotification({
+          type: NotificationType.REVIEW,
+          message: `${restaurant.name}에 새로운 리뷰가 등록되었습니다.`,
+          recipientId: restaurant.user.id,
+          senderId: userId,
+          restaurantId,
+        });
+      }
 
       await queryRunner.commitTransaction();
       return review;

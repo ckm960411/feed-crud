@@ -104,7 +104,7 @@ export class FindAllRestaurantsResDto {
     example: ['순대곱창', '노포', '술맛집'],
   })
   @IsArray()
-  restaurantToRestaurantTags: string[];
+  tags: string[];
 
   @ApiProperty({
     description: '리뷰 개수',
@@ -133,7 +133,7 @@ export class FindAllRestaurantsResDto {
     this.closingTime = restaurant.closingTime;
     this.lastOrderTime = restaurant.lastOrderTime;
     this.photos = map(restaurant.photos, 'url');
-    this.restaurantToRestaurantTags = map(
+    this.tags = map(
       restaurant.restaurantToRestaurantTags,
       'restaurantTag.name',
     );

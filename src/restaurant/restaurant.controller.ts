@@ -227,6 +227,22 @@ export class RestaurantController {
   }
 
   @ApiOperation({
+    summary: '내 북마크 맛집 목록 조회',
+    description: '내 북마크 맛집 목록을 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '내 북마크 맛집 목록 조회 성공',
+    isArray: true,
+    type: FindAllRestaurantsResDto,
+  })
+  @Get('/me/bookmarks')
+  @UseGuards(JwtAuthGuard)
+  async findAllBookmarksByUserId(@UserDecorator('id') userId: number) {
+    return this.restaurantBookmarkService.findAllBookmarksByUserId(userId);
+  }
+
+  @ApiOperation({
     summary: '맛집 찜하기',
     description: '특정 맛집을 찜합니다.',
   })

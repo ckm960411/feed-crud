@@ -8,6 +8,7 @@ import { RestaurantBookmark } from 'src/entities/restaurant/restaurant-bookmark.
 import { Repository, DataSource } from 'typeorm';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/entities/notification.entity';
+import { FindAllRestaurantsResDto } from '../dto/response/find-all-restaurants.res.dto';
 
 @Injectable()
 export class RestaurantBookmarkService {
@@ -17,6 +18,30 @@ export class RestaurantBookmarkService {
     private readonly dataSource: DataSource,
     private readonly notificationService: NotificationService,
   ) {}
+
+  async findAllBookmarksByUserId(userId: number) {
+    const bookmarks = await this.restaurantBookmarkRepository.find({
+      where: {
+        user: { id: userId },
+      },
+      relations: {
+        restaurant: {
+          photos: true,
+          restaurantToRestaurantTags: {
+            restaurantTag: true,
+          },
+          reviews: true,
+          bookmarks: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return bookmarks.map(
+      (bookmark) => new FindAllRestaurantsResDto(bookmark.restaurant),
+    );
+  }
 
   async addBookmarkRestaurant({
     userId,

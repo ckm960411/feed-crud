@@ -6,10 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { RestaurantService } from './service/restaurant.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { RegisterRestaurantReqDto } from './dto/request/register-restaurant.req.dto';
 import { JwtAuthGuard } from 'src/auth/strategies/jwt-auth.guard';
@@ -24,6 +25,7 @@ import { FindReviewResponse } from './dto/response/find-review.response';
 import { UpdateRestaurantReviewReqDto } from './dto/request/upate-restaurant-review.req.dto';
 import { UpdateRestaurantReqDto } from './dto/request/update-restaurant.req.dto';
 import { RestaurantBookmarkService } from './service/restaurant-bookmark.service';
+import { FindAllRestaurantsReqQuery } from './dto/request/find-all-restaurants.req.query';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -38,6 +40,9 @@ export class RestaurantController {
     summary: '맛집 목록 조회',
     description: '맛집 목록을 조회합니다.',
   })
+  @ApiQuery({
+    type: FindAllRestaurantsReqQuery,
+  })
   @ApiResponse({
     status: 200,
     description: '맛집 목록 조회 성공',
@@ -48,8 +53,9 @@ export class RestaurantController {
   @UseGuards(OptionalJwtAuthGuard)
   async findAll(
     @UserDecorator() user: User | null,
+    @Query() query: FindAllRestaurantsReqQuery,
   ): Promise<FindAllRestaurantsResDto[]> {
-    return this.restaurantService.findAll(user?.id);
+    return this.restaurantService.findAll({ userId: user?.id, query });
   }
 
   @ApiOperation({

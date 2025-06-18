@@ -120,7 +120,15 @@ export class FindAllRestaurantsResDto {
   @IsBoolean()
   isBookmarked: boolean;
 
-  constructor(restaurant: Restaurant, userId?: number) {
+  @ApiProperty({
+    description: '사용자로부터의 거리 (km)',
+    example: '2.5',
+    required: false,
+  })
+  @IsString()
+  distance?: string;
+
+  constructor(restaurant: Restaurant & { distance?: string }, userId?: number) {
     this.id = restaurant.id;
     this.name = restaurant.name;
     this.category = restaurant.category;
@@ -141,5 +149,6 @@ export class FindAllRestaurantsResDto {
     this.isBookmarked = restaurant.bookmarks.some(
       (bookmark) => bookmark.user.id === userId,
     );
+    this.distance = restaurant.distance;
   }
 }

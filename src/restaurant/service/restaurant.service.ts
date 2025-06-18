@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, ILike, Repository, Between } from 'typeorm';
 import { RegisterRestaurantReqDto } from '../dto/request/register-restaurant.req.dto';
 import { RestaurantTag } from 'src/entities/restaurant/restaurant-tag.entity';
 import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to-restaurant-tag.entity';
@@ -14,6 +14,11 @@ import { map } from 'lodash';
 import { FindAllRestaurantsResDto } from '../dto/response/find-all-restaurants.res.dto';
 import { FindOneRestaurantResDto } from '../dto/response/find-one-restaurant.res.dto';
 import { UpdateRestaurantReqDto } from '../dto/request/update-restaurant.req.dto';
+import { FindAllRestaurantsReqQuery } from '../dto/request/find-all-restaurants.req.query';
+import {
+  calculateBoundingBox,
+  calculateDistance,
+} from 'src/utils/location.utils';
 
 @Injectable()
 export class RestaurantService {
@@ -23,7 +28,45 @@ export class RestaurantService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async findAll(userId?: number) {
+  async findAll({
+    userId,
+    query,
+  }: {
+    userId?: number;
+    query: FindAllRestaurantsReqQuery;
+  }) {
+    // 검색 조건을 동적으로 구성
+    const whereConditions: any = {};
+
+    // 이름 검색 (빈 문자열이 아닐 때만)
+    if (query.name && query.name.trim() !== '') {
+      whereConditions.name = ILike(`%${query.name.trim()}%`);
+    }
+
+    // 카테고리 검색
+    if (query.category) {
+      whereConditions.category = query.category;
+    }
+
+    // 주소 검색 (빈 문자열이 아닐 때만)
+    if (query.address && query.address.trim() !== '') {
+      whereConditions.address = ILike(`%${query.address.trim()}%`);
+    }
+
+    // 위치 기반 검색이 있는 경우
+    if (query.lat && query.lng) {
+      const radius = query.radius || 10; // 기본 10km
+      const { minLat, maxLat, minLng, maxLng } = calculateBoundingBox(
+        query.lat,
+        query.lng,
+        radius,
+      );
+
+      // 경계 박스 조건 추가
+      whereConditions.lat = Between(minLat, maxLat);
+      whereConditions.lng = Between(minLng, maxLng);
+    }
+
     const restaurants = await this.restaurantRepository.find({
       relations: {
         photos: true,
@@ -35,7 +78,28 @@ export class RestaurantService {
           user: true,
         },
       },
+      where: whereConditions,
     });
+
+    // 위치 기반 검색인 경우 거리 계산 및 정렬
+    if (query.lat && query.lng) {
+      const restaurantsWithDistance = restaurants
+        .map((restaurant) => ({
+          ...restaurant,
+          distance: calculateDistance(
+            query.lat!,
+            query.lng!,
+            restaurant.lat,
+            restaurant.lng,
+          ).toString(), // string으로 변환
+        }))
+        .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); // 거리순 정렬
+
+      return map(
+        restaurantsWithDistance,
+        (restaurant) => new FindAllRestaurantsResDto(restaurant, userId),
+      );
+    }
 
     return map(
       restaurants,

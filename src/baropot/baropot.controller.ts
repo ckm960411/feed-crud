@@ -1,6 +1,12 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { BaropotService } from './baropot.service';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/strategies/jwt-auth.guard';
 import { User } from 'src/auth/decorators/user.decorator';
 import { CreateBaropotReqDto } from './dto/request/create-baropot.req.dto';
@@ -13,7 +19,7 @@ export class BaropotController {
 
   // TODO: 응답 타입 정의
   @ApiOperation({
-    summary: '바로팟 조회',
+    summary: '바로팟 목록 조회',
     description: '바로팟 목록을 조회합니다.',
   })
   @Get()
@@ -41,10 +47,18 @@ export class BaropotController {
     return this.baropotService.findBaropotById(baropotId);
   }
 
-  // TODO: 응답 타입 정의
   @ApiOperation({
     summary: '바로팟 등록',
     description: '바로팟을 생성합니다.',
+  })
+  @ApiBody({
+    type: CreateBaropotReqDto,
+    description: '바로팟 생성 요청 데이터 (CreateBaropotReqDto)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '바로팟 생성 성공 (FindBaropotResDto)',
+    type: FindBaropotResDto,
   })
   @Post()
   @UseGuards(JwtAuthGuard)

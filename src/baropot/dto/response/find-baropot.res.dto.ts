@@ -156,7 +156,8 @@ export class FindBaropotResDto {
     name: string;
     isHost: boolean;
     joinedStatus: BaropotJoinedStatus;
-    hostMemo: string;
+    joinMessage: string | null;
+    hostMemo: string | null;
   }[];
 
   constructor(baropot: Baropot) {
@@ -200,6 +201,7 @@ export class FindBaropotResDto {
       name: participant.user.name,
       isHost: participant.isHost,
       joinedStatus: participant.joinedStatus,
+      joinMessage: participant.joinMessage,
       hostMemo: participant.hostMemo,
     }));
   }

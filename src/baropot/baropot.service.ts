@@ -128,7 +128,7 @@ export class BaropotService {
       });
 
       await queryRunner.commitTransaction();
-      return baropot;
+      return await this.findBaropotById(baropot.id);
     } catch {
       await queryRunner.rollbackTransaction();
     } finally {

@@ -6,10 +6,12 @@ import {
   IsNumber,
   IsString,
 } from 'class-validator';
-import { map } from 'lodash';
+import { map, sumBy } from 'lodash';
 import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
 import { RestaurantCategory } from 'src/types/enum/restaurant-category.enum';
 import { FindReviewResponse } from './find-review.response';
+import { BaropotJoinedStatus } from 'src/types/enum/baropot-joined-status.enum';
+import { BaropotStatus } from 'src/types/enum/baropot-status.enum';
 
 export class FindOneRestaurantResDto {
   @ApiProperty({
@@ -148,6 +150,48 @@ export class FindOneRestaurantResDto {
   @IsBoolean()
   isBookmarked: boolean;
 
+  @ApiProperty({
+    description: '바로팟 목록',
+    example: [
+      {
+        id: 1,
+        host: {
+          userId: 1,
+          name: '장혜리',
+        },
+        participantCount: 3,
+        pendingParticipantCount: 5,
+        participants: [
+          {
+            userId: 1,
+            name: '장혜리',
+            isHost: true,
+            joinedStatus: 'APPROVED',
+            joinMessage: '내가 대장',
+            hostMemo: '내가 대장',
+          },
+        ],
+      },
+    ],
+  })
+  baropots: {
+    id: number;
+    host: {
+      userId: number;
+      name: string;
+    };
+    participantCount: number;
+    pendingParticipantCount: number;
+    participants: {
+      userId: number;
+      name: string;
+      isHost: boolean;
+      joinedStatus: BaropotJoinedStatus;
+      joinMessage: string | null;
+      hostMemo: string | null;
+    }[];
+  }[];
+
   constructor(restaurant: Restaurant, userId?: number) {
     this.id = restaurant.id;
     this.name = restaurant.name;
@@ -173,5 +217,37 @@ export class FindOneRestaurantResDto {
     this.isBookmarked = restaurant.bookmarks.some(
       (bookmark) => bookmark.user.id === userId,
     );
+
+    this.baropots = restaurant.baropots
+      .filter((baropot) => baropot.status === BaropotStatus.OPEN)
+      .map((baropot) => ({
+        id: baropot.id,
+        host: {
+          userId: baropot.baropotParticipants.find(
+            (participant) => participant.isHost,
+          )?.user.id,
+          name: baropot.baropotParticipants.find(
+            (participant) => participant.isHost,
+          )?.user.name,
+        },
+        participantCount: sumBy(
+          baropot.baropotParticipants,
+          ({ joinedStatus }) =>
+            Number(joinedStatus === BaropotJoinedStatus.APPROVED),
+        ),
+        pendingParticipantCount: sumBy(
+          baropot.baropotParticipants,
+          ({ joinedStatus }) =>
+            Number(joinedStatus === BaropotJoinedStatus.PENDING),
+        ),
+        participants: map(baropot.baropotParticipants, (participant) => ({
+          userId: participant.user.id,
+          name: participant.user.name,
+          isHost: participant.isHost,
+          joinedStatus: participant.joinedStatus,
+          joinMessage: participant.joinMessage,
+          hostMemo: participant.hostMemo,
+        })),
+      }));
   }
 }

@@ -77,6 +77,11 @@ export class RestaurantService {
         bookmarks: {
           user: true,
         },
+        baropots: {
+          baropotParticipants: {
+            user: true,
+          },
+        },
       },
       where: whereConditions,
     });
@@ -124,6 +129,11 @@ export class RestaurantService {
         },
         bookmarks: {
           user: true,
+        },
+        baropots: {
+          baropotParticipants: {
+            user: true,
+          },
         },
       },
     });

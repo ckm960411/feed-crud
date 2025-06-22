@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -6,6 +6,8 @@ import { CreateBaropotReqDto } from './dto/request/create-baropot.req.dto';
 import { BaropotParticipant } from 'src/entities/baropot/baropot-participant.entity';
 import { BaropotToBaropotTag } from 'src/entities/baropot/baropot-to-baropot-tag.entity';
 import { BaropotTag } from 'src/entities/baropot/baropot-tag.entity';
+import { BaropotJoinedStatus } from 'src/types/enum/baropot-joined-status.enum';
+import { FindBaropotResDto } from './dto/response/find-baropot.res.dto';
 
 @Injectable()
 export class BaropotService {
@@ -25,6 +27,29 @@ export class BaropotService {
         restaurant: true,
       },
     });
+  }
+
+  async findBaropotById(baropotId: number) {
+    const baropot = await this.baropotRepository.findOne({
+      where: { id: baropotId },
+      relations: {
+        baropotParticipants: {
+          user: true,
+        },
+        baropotToBaropotTags: {
+          baropotTag: true,
+        },
+        restaurant: true,
+      },
+    });
+
+    if (!baropot) {
+      throw new NotFoundException(
+        `바로팟을 찾을 수 없습니다. (ID: ${baropotId})`,
+      );
+    }
+
+    return new FindBaropotResDto(baropot);
   }
 
   async createBaropot({
@@ -99,6 +124,7 @@ export class BaropotService {
           id: userId,
         },
         isHost: true,
+        joinedStatus: BaropotJoinedStatus.APPROVED, // 호스트는 승인상태가 디폴트
       });
 
       await queryRunner.commitTransaction();

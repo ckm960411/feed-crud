@@ -9,4 +9,16 @@ export class BaropotService {
     @InjectRepository(Baropot)
     private readonly baropotRepository: Repository<Baropot>,
   ) {}
+
+  async findAllBaropots() {
+    return this.baropotRepository.find({
+      relations: {
+        baropotParticipants: true,
+        baropotToBaropotTags: {
+          baropotTag: true,
+        },
+        restaurant: true,
+      },
+    });
+  }
 }

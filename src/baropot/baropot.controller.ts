@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { BaropotService } from './baropot.service';
@@ -20,20 +21,29 @@ import { User } from 'src/auth/decorators/user.decorator';
 import { CreateBaropotReqDto } from './dto/request/create-baropot.req.dto';
 import { FindBaropotResDto } from './dto/response/find-baropot.res.dto';
 import { UpdateBaropotReqDto } from './dto/request/update-baropot.req.dto';
+import { OptionalJwtAuthGuard } from 'src/auth/strategies/optional-jwt-auth.guard';
+import { FindAllBaropotReqQuery } from './dto/request/find-all-baropot.req.query';
 
 @ApiTags('바로팟')
 @Controller('baropots')
 export class BaropotController {
   constructor(private readonly baropotService: BaropotService) {}
 
-  // TODO: 응답 타입 정의
   @ApiOperation({
     summary: '바로팟 목록 조회',
     description: '바로팟 목록을 조회합니다.',
   })
+  @ApiResponse({
+    status: 200,
+    description: '바로팟 목록 조회 성공 (FindBaropotResDto[])',
+    type: [FindBaropotResDto],
+  })
   @Get()
-  async findAllBaropots() {
-    return this.baropotService.findAllBaropots();
+  @UseGuards(OptionalJwtAuthGuard)
+  async findAllBaropots(@Query() query: FindAllBaropotReqQuery) {
+    return this.baropotService.findAllBaropots({
+      query,
+    });
   }
 
   @ApiOperation({

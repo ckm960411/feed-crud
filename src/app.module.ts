@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { FeedModule } from './feed/feed.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { AwsModule } from './aws/aws.module';
+import { BaropotModule } from './baropot/baropot.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AwsModule } from './aws/aws.module';
     FeedModule,
     RestaurantModule,
     AwsModule,
+    BaropotModule,
   ],
   controllers: [AppController],
   providers: [AppService],

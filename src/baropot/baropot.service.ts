@@ -16,6 +16,8 @@ import { FindBaropotResDto } from './dto/response/find-baropot.res.dto';
 import { UpdateBaropotReqDto } from './dto/request/update-baropot.req.dto';
 import { sumBy } from 'lodash';
 import { isBefore } from 'date-fns';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/entities/notification.entity';
 
 @Injectable()
 export class BaropotService {
@@ -23,6 +25,7 @@ export class BaropotService {
     @InjectRepository(Baropot)
     private readonly baropotRepository: Repository<Baropot>,
     private readonly dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findAllBaropots() {
@@ -274,6 +277,10 @@ export class BaropotService {
       );
 
       await queryRunner.commitTransaction();
+
+      // 트랜잭션 성공 후 알림 전송
+      await this.sendNotificationToParticipants({ baropotId, userId, dto });
+
       return await this.findBaropotById(baropotId);
     } catch (error) {
       if (queryRunner.isTransactionActive) {
@@ -282,6 +289,75 @@ export class BaropotService {
       throw error;
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  private async sendNotificationToParticipants({
+    baropotId,
+    userId,
+    dto,
+  }: {
+    baropotId: number;
+    userId: number;
+    dto: UpdateBaropotReqDto;
+  }) {
+    const baropot = await this.baropotRepository.findOne({
+      where: { id: baropotId },
+      relations: {
+        baropotParticipants: {
+          user: true,
+        },
+      },
+    });
+
+    const isDateChanged = 'date' in dto && dto.date !== baropot.date;
+    const isTimeChanged = 'time' in dto && dto.time !== baropot.time;
+
+    if (isDateChanged || isTimeChanged) {
+      const participants = baropot.baropotParticipants.filter(
+        (participant) =>
+          participant.joinedStatus === BaropotJoinedStatus.APPROVED &&
+          !participant.isHost,
+      );
+
+      console.log(
+        `[바로팟 알림] 바로팟 ID: ${baropotId}, 제목: "${baropot.title}"`,
+      );
+      console.log(
+        `[바로팟 알림] 변경사항 - 날짜: ${isDateChanged ? '변경됨' : '변경없음'}, 시간: ${isTimeChanged ? '변경됨' : '변경없음'}`,
+      );
+      console.log(
+        `[바로팟 알림] 알림 대상 참가자 수: ${participants.length}명`,
+      );
+
+      // 각 참가자에게 알림 전송
+      for (const participant of participants) {
+        console.log(
+          `[바로팟 알림] 참가자 ID: ${participant.user.id}에게 알림 전송 중...`,
+        );
+
+        try {
+          await this.notificationService.createNotification({
+            type: NotificationType.BAROPOT_DATETIME_CHANGED,
+            message: `"${baropot.title}" 바로팟의 날짜 또는 시간이 변경되었습니다.`,
+            recipientId: participant.user.id,
+            senderId: userId,
+            restaurantId: baropot.restaurant.id,
+          });
+          console.log(
+            `[바로팟 알림] 참가자 ID: ${participant.user.id}에게 알림 전송 완료`,
+          );
+        } catch (error) {
+          console.error(
+            `[바로팟 알림] 참가자 ID: ${participant.user.id}에게 알림 전송 실패:`,
+            error,
+          );
+        }
+      }
+
+      console.log(`[바로팟 알림] 모든 알림 전송 완료`);
+    } else {
+      console.log(`[바로팟 알림] 날짜/시간 변경사항 없음 - 알림 전송하지 않음`);
     }
   }
 }

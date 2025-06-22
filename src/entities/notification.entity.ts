@@ -6,6 +6,7 @@ import { Restaurant } from './restaurant/restaurant.entity';
 export enum NotificationType {
   REVIEW = 'REVIEW',
   BOOKMARK = 'BOOKMARK',
+  BAROPOT_DATETIME_CHANGED = 'BAROPOT_DATETIME_CHANGED',
 }
 
 @Entity()

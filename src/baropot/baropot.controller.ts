@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { BaropotService } from './baropot.service';
 import {
   ApiBody,
@@ -11,6 +19,7 @@ import { JwtAuthGuard } from 'src/auth/strategies/jwt-auth.guard';
 import { User } from 'src/auth/decorators/user.decorator';
 import { CreateBaropotReqDto } from './dto/request/create-baropot.req.dto';
 import { FindBaropotResDto } from './dto/response/find-baropot.res.dto';
+import { UpdateBaropotReqDto } from './dto/request/update-baropot.req.dto';
 
 @ApiTags('바로팟')
 @Controller('baropots')
@@ -70,5 +79,34 @@ export class BaropotController {
       userId,
       dto,
     });
+  }
+
+  @ApiOperation({
+    summary: '바로팟 수정',
+    description: '바로팟을 수정합니다.',
+  })
+  @ApiParam({
+    name: 'baropotId',
+    description: '바로팟 ID',
+    example: 1,
+    type: Number,
+  })
+  @ApiBody({
+    type: UpdateBaropotReqDto,
+    description: '바로팟 수정 요청 데이터 (UpdateBaropotReqDto)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '바로팟 수정 성공 (FindBaropotResDto)',
+    type: FindBaropotResDto,
+  })
+  @Patch(':baropotId')
+  @UseGuards(JwtAuthGuard)
+  async updateBaropot(
+    @Param('baropotId') baropotId: number,
+    @Body() dto: UpdateBaropotReqDto,
+    @User('id') userId: number,
+  ) {
+    return this.baropotService.updateBaropot({ baropotId, dto, userId });
   }
 }

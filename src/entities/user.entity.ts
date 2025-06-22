@@ -8,6 +8,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { RestaurantBookmark } from './restaurant/restaurant-bookmark.entity';
 import { RestaurantReview } from './restaurant/restaurant-review.entity';
 import { Notification } from './notification.entity';
+import { BaropotParticipant } from './baropot/baropot-participant.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -53,4 +54,10 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Notification, (notification) => notification.recipient)
   notifications: Notification[];
+
+  @OneToMany(
+    () => BaropotParticipant,
+    (baropotParticipant) => baropotParticipant.user,
+  )
+  baropotParticipants: BaropotParticipant[];
 }

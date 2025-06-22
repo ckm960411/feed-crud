@@ -9,6 +9,9 @@ import { ParticipantGender } from 'src/types/enum/participant-gender.enum';
 import { PaymentMethod } from 'src/types/enum/payment-method.enum';
 
 export class FindBaropotResDto {
+  // ------------------------------
+  // 바로팟 정보
+  // ------------------------------
   @ApiProperty({
     description: '바로팟 ID',
     example: 1,
@@ -118,6 +121,43 @@ export class FindBaropotResDto {
   })
   tags: string[];
 
+  // ------------------------------
+  // 바로팟 맛집 정보
+  // ------------------------------
+  @ApiProperty({
+    description: '바로팟 맛집 정보',
+    example: {
+      id: 1,
+      name: '이경문 순대곱창',
+      category: 'KOREAN',
+      address: '서울특별시 종로구 종로3가 123-123',
+      lat: '36.777700',
+      lng: '128.123120',
+      description: '내 2024년 최고 맛집',
+      phoneNumber: '0212341234',
+      openingTime: '11:00',
+      closingTime: '22:00',
+      lastOrderTime: '21:00',
+    },
+  })
+  restaurant: {
+    id: number;
+    name: string;
+    category: string;
+    address: string;
+    lat: string;
+    lng: string;
+    description: string;
+    phoneNumber: string;
+    openingTime: string;
+    closingTime: string;
+    lastOrderTime: string;
+  };
+
+  // ------------------------------
+  // 바로팟 참가자 정보
+  // ------------------------------
+
   @ApiProperty({
     description: '호스트',
     example: {
@@ -204,5 +244,19 @@ export class FindBaropotResDto {
       joinMessage: participant.joinMessage,
       hostMemo: participant.hostMemo,
     }));
+
+    this.restaurant = {
+      id: baropot.restaurant.id,
+      name: baropot.restaurant.name,
+      category: baropot.restaurant.category,
+      address: baropot.restaurant.address,
+      lat: baropot.restaurant.lat.toString(),
+      lng: baropot.restaurant.lng.toString(),
+      description: baropot.restaurant.description,
+      phoneNumber: baropot.restaurant.phoneNumber,
+      openingTime: baropot.restaurant.openingTime,
+      closingTime: baropot.restaurant.closingTime,
+      lastOrderTime: baropot.restaurant.lastOrderTime,
+    };
   }
 }

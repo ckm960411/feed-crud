@@ -14,6 +14,7 @@ export class Baropot extends BaseEntity {
   @Column({
     type: 'enum',
     enum: BaropotStatus,
+    default: BaropotStatus.OPEN,
   })
   status: BaropotStatus;
 

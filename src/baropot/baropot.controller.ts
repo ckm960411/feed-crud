@@ -23,14 +23,14 @@ import { FindBaropotResDto } from './dto/response/find-baropot.res.dto';
 import { UpdateBaropotReqDto } from './dto/request/update-baropot.req.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/strategies/optional-jwt-auth.guard';
 import { FindAllBaropotReqQuery } from './dto/request/find-all-baropot.req.query';
-import { FindBaropotService } from './dto/service/find-baropot.service';
-import { CreateBaropotService } from './dto/service/create-baropot.service';
-import { UpdateBaropotService } from './dto/service/update-baropot.service';
+import { CreateBaropotService } from './service/create-baropot.service';
+import { UpdateBaropotService } from './service/update-baropot.service';
 import { ParticipateBaropotService } from './service/participate-baropot.service';
 import { ParticipateBaropotReqDto } from './dto/request/participate-baropot.req.dto';
 import { HandleParticipantRequestReqDto } from './dto/request/handle-participant-request.req.dto';
 import { UpdateBaropotStatusService } from './service/update-baropot-status.service';
 import { UpdateBaropotStatusReqDto } from './dto/request/update-baropot-status.req.dto';
+import { FindBaropotService } from './service/find-baropot.service';
 
 @ApiTags('바로팟')
 @Controller('baropots')

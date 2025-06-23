@@ -1,7 +1,6 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UpdateBaropotStatusReqDto } from '../dto/request/update-baropot-status.req.dto';
-import { FindBaropotService } from '../dto/service/find-baropot.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import {
@@ -11,11 +10,10 @@ import {
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/entities/notification.entity';
 import { BaropotJoinedStatus } from 'src/types/enum/baropot-joined-status.enum';
+import { FindBaropotService } from './find-baropot.service';
 
 @Injectable()
 export class UpdateBaropotStatusService {
-  private readonly logger = new Logger(UpdateBaropotStatusService.name);
-
   constructor(
     @InjectRepository(Baropot)
     private readonly baropotRepository: Repository<Baropot>,

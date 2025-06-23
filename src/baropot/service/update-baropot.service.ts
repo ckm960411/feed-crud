@@ -4,15 +4,15 @@ import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import { DataSource, Repository } from 'typeorm';
-import { FindBaropotService } from './find-baropot.service';
 import { NotificationService } from 'src/notification/notification.service';
-import { UpdateBaropotReqDto } from '../request/update-baropot.req.dto';
+import { UpdateBaropotReqDto } from '../dto/request/update-baropot.req.dto';
 import { BaropotJoinedStatus } from 'src/types/enum/baropot-joined-status.enum';
 import { sumBy } from 'lodash';
 import { isBefore } from 'date-fns';
 import { BaropotToBaropotTag } from 'src/entities/baropot/baropot-to-baropot-tag.entity';
 import { BaropotTag } from 'src/entities/baropot/baropot-tag.entity';
 import { NotificationType } from 'src/entities/notification.entity';
+import { FindBaropotService } from './find-baropot.service';
 
 @Injectable()
 export class UpdateBaropotService {

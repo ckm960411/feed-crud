@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ParticipateBaropotReqDto } from '../dto/request/participate-baropot.req.dto';
-import { FindBaropotService } from '../dto/service/find-baropot.service';
 import { BaropotParticipant } from 'src/entities/baropot/baropot-participant.entity';
 import { BaropotJoinedStatus } from 'src/types/enum/baropot-joined-status.enum';
 import { NotificationService } from 'src/notification/notification.service';
@@ -9,6 +8,7 @@ import { NotificationType } from 'src/entities/notification.entity';
 import { HandleParticipantRequestReqDto } from '../dto/request/handle-participant-request.req.dto';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import { BaropotStatus } from 'src/types/enum/baropot-status.enum';
+import { FindBaropotService } from './find-baropot.service';
 
 @Injectable()
 export class ParticipateBaropotService {

@@ -6,11 +6,11 @@ import { BaropotParticipant } from 'src/entities/baropot/baropot-participant.ent
 import { BaropotTag } from 'src/entities/baropot/baropot-tag.entity';
 import { BaropotToBaropotTag } from 'src/entities/baropot/baropot-to-baropot-tag.entity';
 import { NotificationModule } from 'src/notification/notification.module';
-import { FindBaropotService } from './dto/service/find-baropot.service';
-import { CreateBaropotService } from './dto/service/create-baropot.service';
-import { UpdateBaropotService } from './dto/service/update-baropot.service';
+import { CreateBaropotService } from './service/create-baropot.service';
+import { UpdateBaropotService } from './service/update-baropot.service';
 import { ParticipateBaropotService } from './service/participate-baropot.service';
 import { UpdateBaropotStatusService } from './service/update-baropot-status.service';
+import { FindBaropotService } from './service/find-baropot.service';
 
 @Module({
   imports: [

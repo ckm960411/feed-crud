@@ -1,18 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
-import { Between, DataSource, ILike, In, Repository } from 'typeorm';
-import { FindAllBaropotReqQuery } from '../request/find-all-baropot.req.query';
+import { Between, ILike, In, Repository } from 'typeorm';
 import { calculateBoundingBox } from 'src/utils/location.utils';
-import { FindBaropotResDto } from '../response/find-baropot.res.dto';
 import { map } from 'lodash';
+import { FindAllBaropotReqQuery } from '../dto/request/find-all-baropot.req.query';
+import { FindBaropotResDto } from '../dto/response/find-baropot.res.dto';
 
 @Injectable()
 export class FindBaropotService {
   constructor(
     @InjectRepository(Baropot)
     private readonly baropotRepository: Repository<Baropot>,
-    private readonly dataSource: DataSource,
   ) {}
 
   async findAllBaropots({ query }: { query: FindAllBaropotReqQuery }) {

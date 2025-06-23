@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import { DataSource } from 'typeorm';
-import { CreateBaropotReqDto } from '../request/create-baropot.req.dto';
+import { CreateBaropotReqDto } from '../dto/request/create-baropot.req.dto';
 import { BaropotTag } from 'src/entities/baropot/baropot-tag.entity';
 import { BaropotToBaropotTag } from 'src/entities/baropot/baropot-to-baropot-tag.entity';
 import { BaropotParticipant } from 'src/entities/baropot/baropot-participant.entity';
 import { BaropotJoinedStatus } from 'src/types/enum/baropot-joined-status.enum';
-import { FindBaropotService } from './find-baropot.service';
+import { FindBaropotService } from 'src/baropot/service/find-baropot.service';
 
 @Injectable()
 export class CreateBaropotService {

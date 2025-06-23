@@ -215,6 +215,19 @@ export class ParticipateBaropotService {
         );
       }
 
+      // FULL상태(아직 모임이 시작 전)에 이미 승인되었던 참가자가 강퇴당했다면 OPEN 상태로 변경
+      if (
+        participant.joinedStatus === BaropotJoinedStatus.APPROVED &&
+        joinedStatus === BaropotJoinedStatus.REMOVED &&
+        baropot.status === BaropotStatus.FULL
+      ) {
+        await queryRunner.manager.update(
+          Baropot,
+          { id: baropotId },
+          { status: BaropotStatus.OPEN },
+        );
+      }
+
       await queryRunner.commitTransaction();
 
       return true;

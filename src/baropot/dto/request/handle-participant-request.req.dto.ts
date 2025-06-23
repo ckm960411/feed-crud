@@ -12,12 +12,24 @@ export class HandleParticipantRequestReqDto {
   participantUserId: number;
 
   @ApiProperty({
-    description: '변경할 참가 상태 (승인 APPROVED 또는 거절 REJECTED)',
-    enum: [BaropotJoinedStatus.APPROVED, BaropotJoinedStatus.REJECTED],
+    description:
+      '변경할 참가 상태 (승인 APPROVED 또는 거절 REJECTED 또는 강퇴 REMOVED)',
+    enum: [
+      BaropotJoinedStatus.APPROVED,
+      BaropotJoinedStatus.REJECTED,
+      BaropotJoinedStatus.REMOVED,
+    ],
     example: 'APPROVED',
   })
-  @IsEnum([BaropotJoinedStatus.APPROVED, BaropotJoinedStatus.REJECTED])
-  joinedStatus: BaropotJoinedStatus.APPROVED | BaropotJoinedStatus.REJECTED;
+  @IsEnum([
+    BaropotJoinedStatus.APPROVED,
+    BaropotJoinedStatus.REJECTED,
+    BaropotJoinedStatus.REMOVED,
+  ])
+  joinedStatus:
+    | BaropotJoinedStatus.APPROVED
+    | BaropotJoinedStatus.REJECTED
+    | BaropotJoinedStatus.REMOVED;
 
   @ApiProperty({
     description: '거절 시 거절 사유 (선택사항)',

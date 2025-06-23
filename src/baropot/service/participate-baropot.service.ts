@@ -154,10 +154,12 @@ export class ParticipateBaropotService {
 
       let notificationMessage: string;
 
-      if (joinedStatus === BaropotJoinedStatus.APPROVED) {
-        notificationMessage = `"${baropot.title}" 바로팟 참가가 승인되었습니다.`;
-      } else {
+      if (joinedStatus === BaropotJoinedStatus.REJECTED) {
         notificationMessage = `"${baropot.title}" 바로팟 참가가 거절되었습니다.${hostMemo ? ` 사유: ${hostMemo}` : ''}`;
+      } else if (joinedStatus === BaropotJoinedStatus.REMOVED) {
+        notificationMessage = `"${baropot.title}" 바로팟 참가가 강퇴되었습니다.`;
+      } else {
+        notificationMessage = `"${baropot.title}" 바로팟 참가가 승인되었습니다.`;
       }
 
       // 참가자 상태 업데이트
@@ -170,12 +172,18 @@ export class ParticipateBaropotService {
         { joinedStatus, hostMemo },
       );
 
+      const notificationType = {
+        [BaropotJoinedStatus.APPROVED]:
+          NotificationType.BAROPOT_PARTICIPANT_JOIN_REQUEST_APPROVED,
+        [BaropotJoinedStatus.REJECTED]:
+          NotificationType.BAROPOT_PARTICIPANT_JOIN_REQUEST_REJECTED,
+        [BaropotJoinedStatus.REMOVED]:
+          NotificationType.BAROPOT_PARTICIPANT_JOIN_REQUEST_REMOVED,
+      } as const;
+
       // 알림 생성
       await this.notificationService.createNotification({
-        type:
-          joinedStatus === BaropotJoinedStatus.APPROVED
-            ? NotificationType.BAROPOT_PARTICIPANT_JOIN_REQUEST_APPROVED
-            : NotificationType.BAROPOT_PARTICIPANT_JOIN_REQUEST_REJECTED,
+        type: notificationType[joinedStatus],
         message: notificationMessage,
         recipientId: participant.user.id,
         senderId: userId,

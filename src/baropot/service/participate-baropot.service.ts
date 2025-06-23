@@ -67,8 +67,25 @@ export class ParticipateBaropotService {
         }
       }
 
-      if (baropot.maxParticipants <= baropot.participants.length) {
+      if (
+        baropot.maxParticipants <= baropot.participants.length ||
+        baropot.status === BaropotStatus.FULL
+      ) {
         throw new BadRequestException('바로팟 참가 인원이 초과되었습니다.');
+      }
+
+      if (baropot.status === BaropotStatus.IN_PROGRESS) {
+        throw new BadRequestException(
+          '모임 시작 이후에는 참가 요청을 할 수 없습니다.',
+        );
+      }
+
+      if (baropot.status === BaropotStatus.COMPLETED) {
+        throw new BadRequestException('이미 모임이 완료된 바로팟입니다.');
+      }
+
+      if (baropot.status === BaropotStatus.CANCELLED) {
+        throw new BadRequestException('이미 모임이 취소된 바로팟입니다.');
       }
 
       await queryRunner.manager.save(BaropotParticipant, {

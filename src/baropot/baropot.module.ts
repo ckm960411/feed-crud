@@ -9,6 +9,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { FindBaropotService } from './dto/service/find-baropot.service';
 import { CreateBaropotService } from './dto/service/create-baropot.service';
 import { UpdateBaropotService } from './dto/service/update-baropot.service';
+import { ParticipateBaropotService } from './service/participate-baropot.service';
 
 @Module({
   imports: [
@@ -21,6 +22,11 @@ import { UpdateBaropotService } from './dto/service/update-baropot.service';
     NotificationModule,
   ],
   controllers: [BaropotController],
-  providers: [FindBaropotService, CreateBaropotService, UpdateBaropotService],
+  providers: [
+    FindBaropotService,
+    CreateBaropotService,
+    UpdateBaropotService,
+    ParticipateBaropotService,
+  ],
 })
 export class BaropotModule {}

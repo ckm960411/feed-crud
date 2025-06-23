@@ -25,6 +25,8 @@ import { FindAllBaropotReqQuery } from './dto/request/find-all-baropot.req.query
 import { FindBaropotService } from './dto/service/find-baropot.service';
 import { CreateBaropotService } from './dto/service/create-baropot.service';
 import { UpdateBaropotService } from './dto/service/update-baropot.service';
+import { ParticipateBaropotService } from './service/participate-baropot.service';
+import { ParticipateBaropotReqDto } from './dto/request/participate-baropot.req.dto';
 
 @ApiTags('바로팟')
 @Controller('baropots')
@@ -33,6 +35,7 @@ export class BaropotController {
     private readonly findBaropotService: FindBaropotService,
     private readonly createBaropotService: CreateBaropotService,
     private readonly updateBaropotService: UpdateBaropotService,
+    private readonly participateBaropotService: ParticipateBaropotService,
   ) {}
 
   @ApiOperation({
@@ -124,5 +127,38 @@ export class BaropotController {
     @User('id') userId: number,
   ) {
     return this.updateBaropotService.updateBaropot({ baropotId, dto, userId });
+  }
+
+  @ApiOperation({
+    summary: '바로팟 참가 요청',
+    description: '바로팟에 참가 요청을 합니다.',
+  })
+  @ApiParam({
+    name: 'baropotId',
+    description: '바로팟 ID',
+    example: 1,
+    type: Number,
+  })
+  @ApiBody({
+    type: ParticipateBaropotReqDto,
+    description: '바로팟 참가 요청 요청 데이터 (ParticipateBaropotReqDto)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '바로팟 참가 요청 성공 (boolean)',
+    type: Boolean,
+  })
+  @UseGuards(JwtAuthGuard)
+  @Post(':baropotId/participants')
+  async participateBaropot(
+    @Param('baropotId') baropotId: number,
+    @User('id') userId: number,
+    @Body() dto: ParticipateBaropotReqDto,
+  ) {
+    return this.participateBaropotService.participateBaropot({
+      baropotId,
+      userId,
+      dto,
+    });
   }
 }

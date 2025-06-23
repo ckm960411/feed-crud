@@ -4,5 +4,5 @@ export enum ContactMethod {
   /** 카카오톡 */
   KAKAO_TALK = 'KAKAO_TALK',
   /** 전화번호 */
-  PHONE_NUMBER = 'PHONE_NUMBER',
+  PHONE_NUMBER = 'PHONE_NUMBER', // 전화번호
 }

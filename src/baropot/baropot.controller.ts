@@ -8,7 +8,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { BaropotService } from './baropot.service';
 import {
   ApiBody,
   ApiOperation,
@@ -23,11 +22,18 @@ import { FindBaropotResDto } from './dto/response/find-baropot.res.dto';
 import { UpdateBaropotReqDto } from './dto/request/update-baropot.req.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/strategies/optional-jwt-auth.guard';
 import { FindAllBaropotReqQuery } from './dto/request/find-all-baropot.req.query';
+import { FindBaropotService } from './dto/service/find-baropot.service';
+import { CreateBaropotService } from './dto/service/create-baropot.service';
+import { UpdateBaropotService } from './dto/service/update-baropot.service';
 
 @ApiTags('바로팟')
 @Controller('baropots')
 export class BaropotController {
-  constructor(private readonly baropotService: BaropotService) {}
+  constructor(
+    private readonly findBaropotService: FindBaropotService,
+    private readonly createBaropotService: CreateBaropotService,
+    private readonly updateBaropotService: UpdateBaropotService,
+  ) {}
 
   @ApiOperation({
     summary: '바로팟 목록 조회',
@@ -41,7 +47,7 @@ export class BaropotController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   async findAllBaropots(@Query() query: FindAllBaropotReqQuery) {
-    return this.baropotService.findAllBaropots({
+    return this.findBaropotService.findAllBaropots({
       query,
     });
   }
@@ -63,7 +69,7 @@ export class BaropotController {
   })
   @Get(':baropotId')
   async findBaropotById(@Param('baropotId') baropotId: number) {
-    return this.baropotService.findBaropotById(baropotId);
+    return this.findBaropotService.findBaropotById(baropotId);
   }
 
   @ApiOperation({
@@ -85,7 +91,7 @@ export class BaropotController {
     @Body() dto: CreateBaropotReqDto,
     @User('id') userId: number,
   ) {
-    return this.baropotService.createBaropot({
+    return this.createBaropotService.createBaropot({
       userId,
       dto,
     });
@@ -117,6 +123,6 @@ export class BaropotController {
     @Body() dto: UpdateBaropotReqDto,
     @User('id') userId: number,
   ) {
-    return this.baropotService.updateBaropot({ baropotId, dto, userId });
+    return this.updateBaropotService.updateBaropot({ baropotId, dto, userId });
   }
 }

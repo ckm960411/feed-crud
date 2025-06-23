@@ -29,6 +29,8 @@ import { UpdateBaropotService } from './dto/service/update-baropot.service';
 import { ParticipateBaropotService } from './service/participate-baropot.service';
 import { ParticipateBaropotReqDto } from './dto/request/participate-baropot.req.dto';
 import { HandleParticipantRequestReqDto } from './dto/request/handle-participant-request.req.dto';
+import { UpdateBaropotStatusService } from './service/update-baropot-status.service';
+import { UpdateBaropotStatusReqDto } from './dto/request/update-baropot-status.req.dto';
 
 @ApiTags('바로팟')
 @Controller('baropots')
@@ -38,6 +40,7 @@ export class BaropotController {
     private readonly createBaropotService: CreateBaropotService,
     private readonly updateBaropotService: UpdateBaropotService,
     private readonly participateBaropotService: ParticipateBaropotService,
+    private readonly updateBaropotStatusService: UpdateBaropotStatusService,
   ) {}
 
   @ApiOperation({
@@ -222,6 +225,39 @@ export class BaropotController {
     return this.participateBaropotService.cancelParticipantJoinRequest({
       baropotId,
       userId,
+    });
+  }
+
+  @ApiOperation({
+    summary: '바로팟 상태 변경',
+    description: '바로팟 상태를 변경합니다.',
+  })
+  @ApiParam({
+    name: 'baropotId',
+    description: '바로팟 ID',
+    example: 1,
+    type: Number,
+  })
+  @ApiBody({
+    type: UpdateBaropotStatusReqDto,
+    description: '바로팟 상태 변경 요청 데이터 (UpdateBaropotStatusReqDto)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '바로팟 상태 변경 성공 (boolean)',
+    type: Boolean,
+  })
+  @Patch(':baropotId/status')
+  @UseGuards(JwtAuthGuard)
+  async updateBaropotStatus(
+    @Param('baropotId') baropotId: number,
+    @User('id') userId: number,
+    @Body() dto: UpdateBaropotStatusReqDto,
+  ) {
+    return this.updateBaropotStatusService.updateBaropotStatus({
+      baropotId,
+      userId,
+      dto,
     });
   }
 }

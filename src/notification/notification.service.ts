@@ -53,6 +53,54 @@ export class NotificationService {
     return notification;
   }
 
+  async createMultipleNotifications({
+    type,
+    message,
+    recipientIds,
+    senderId,
+    restaurantId,
+  }: {
+    type: NotificationType;
+    message: string;
+    recipientIds: number[];
+    senderId: number;
+    restaurantId: number;
+  }) {
+    this.logger.log(
+      `다중 알림 생성 시작: 타입 ${type}, 수신자 수 ${recipientIds.length}, 발신자 ID ${senderId}, 레스토랑 ID ${restaurantId}`,
+    );
+
+    if (recipientIds.length === 0) {
+      this.logger.log('수신자가 없어 알림을 생성하지 않습니다.');
+      return [];
+    }
+
+    // Bulk insert를 위한 데이터 준비
+    const notificationData = recipientIds.map((recipientId) => ({
+      type,
+      message,
+      recipient: { id: recipientId },
+      sender: { id: senderId },
+      restaurant: { id: restaurantId },
+    }));
+
+    // Bulk insert 실행
+    const notifications =
+      await this.notificationRepository.save(notificationData);
+
+    // 각 수신자에게 실시간 알림 발송
+    for (let i = 0; i < recipientIds.length; i++) {
+      const subject = this.getOrCreateSubject(recipientIds[i]);
+      subject.next(notifications[i]);
+    }
+
+    this.logger.log(
+      `다중 알림 생성 완료: 생성된 알림 수 ${notifications.length}, 메시지: ${message}`,
+    );
+
+    return notifications;
+  }
+
   getNotifications(userId: number): Observable<Notification> {
     return this.getOrCreateSubject(userId)
       .asObservable()

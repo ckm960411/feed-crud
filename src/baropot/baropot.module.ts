@@ -10,6 +10,7 @@ import { FindBaropotService } from './dto/service/find-baropot.service';
 import { CreateBaropotService } from './dto/service/create-baropot.service';
 import { UpdateBaropotService } from './dto/service/update-baropot.service';
 import { ParticipateBaropotService } from './service/participate-baropot.service';
+import { UpdateBaropotStatusService } from './service/update-baropot-status.service';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ParticipateBaropotService } from './service/participate-baropot.service
     CreateBaropotService,
     UpdateBaropotService,
     ParticipateBaropotService,
+    UpdateBaropotStatusService,
   ],
 })
 export class BaropotModule {}

@@ -7,8 +7,6 @@ export enum BaropotJoinedStatus {
   REJECTED = 'REJECTED',
   /** 참가자가 직접 신청 취소 */
   CANCELLED = 'CANCELLED',
-  /** 참가자가 모임에서 나감(진행 중/후) */
-  LEFT = 'LEFT',
   /** 주최자/관리자가 강제 퇴장시킴 */
   REMOVED = 'REMOVED',
 }

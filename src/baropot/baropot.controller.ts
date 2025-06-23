@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -194,6 +195,33 @@ export class BaropotController {
       baropotId,
       userId,
       dto,
+    });
+  }
+
+  @ApiOperation({
+    summary: '바로팟 참가 취소',
+    description: '바로팟 참가를 취소합니다.',
+  })
+  @ApiParam({
+    name: 'baropotId',
+    description: '바로팟 ID',
+    example: 1,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '바로팟 참가 취소 성공 (boolean)',
+    type: Boolean,
+  })
+  @Delete(':baropotId/participants')
+  @UseGuards(JwtAuthGuard)
+  async cancelParticipantJoinRequest(
+    @Param('baropotId') baropotId: number,
+    @User('id') userId: number,
+  ) {
+    return this.participateBaropotService.cancelParticipantJoinRequest({
+      baropotId,
+      userId,
     });
   }
 }

@@ -62,10 +62,6 @@ export class ParticipateBaropotService {
           throw new BadRequestException('이미 참가 요청이 취소되었습니다.');
         }
 
-        if (meParticipant.joinedStatus === BaropotJoinedStatus.LEFT) {
-          throw new BadRequestException('이미 바로팟에서 나갔습니다.');
-        }
-
         if (meParticipant.joinedStatus === BaropotJoinedStatus.REMOVED) {
           throw new BadRequestException('이미 바로팟에서 강제 퇴장되었습니다.');
         }
@@ -203,6 +199,83 @@ export class ParticipateBaropotService {
       }
 
       await queryRunner.commitTransaction();
+
+      return true;
+    } catch (error) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async cancelParticipantJoinRequest({
+    baropotId,
+    userId,
+  }: {
+    baropotId: number;
+    userId: number; // 참가 취소하는 사람의 User ID
+  }) {
+    const baropot = await this.findBaropotService.findBaropotById(baropotId);
+
+    if (baropot.host.userId === userId) {
+      throw new BadRequestException('호스트는 참가 취소할 수 없습니다.');
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const participant = await queryRunner.manager.findOne(
+        BaropotParticipant,
+        {
+          where: {
+            user: { id: userId },
+            baropot: { id: baropotId },
+          },
+          relations: {
+            user: true,
+          },
+        },
+      );
+
+      if (!participant) {
+        throw new BadRequestException('참가 요청을 찾을 수 없습니다.');
+      }
+
+      // 취소대상자가 이미 승인된 참가자였고 정원이 차있었다면 바로팟의 상태를 OPEN으로 변경
+      if (
+        participant.joinedStatus === BaropotJoinedStatus.APPROVED &&
+        baropot.status === BaropotStatus.FULL
+      ) {
+        await queryRunner.manager.update(
+          Baropot,
+          { id: baropotId },
+          { status: BaropotStatus.OPEN },
+        );
+      }
+
+      await queryRunner.manager.update(
+        BaropotParticipant,
+        {
+          user: { id: userId },
+          baropot: { id: baropotId },
+        },
+        { joinedStatus: BaropotJoinedStatus.CANCELLED },
+      );
+
+      await queryRunner.commitTransaction();
+
+      await this.notificationService.createNotification({
+        type: NotificationType.BAROPOT_PARTICIPANT_JOIN_REQUEST_CANCELLED,
+        message: `${participant.user.name}님이 "${baropot.title}" 바로팟 참가를 취소하였습니다.`,
+        recipientId: participant.user.id,
+        senderId: userId,
+        restaurantId: baropot.restaurant.id,
+      });
 
       return true;
     } catch (error) {

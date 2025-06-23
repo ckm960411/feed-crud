@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -10,6 +10,7 @@ import { map } from 'rxjs/operators';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
   private notificationSubjects: Map<number, Subject<Notification>> = new Map();
 
   constructor(
@@ -30,6 +31,10 @@ export class NotificationService {
     senderId: number;
     restaurantId: number;
   }) {
+    this.logger.log(
+      `알림 생성 시작: 타입 ${type}, 수신자 ID ${recipientId}, 발신자 ID ${senderId}, 레스토랑 ID ${restaurantId}`,
+    );
+
     const notification = await this.notificationRepository.save({
       type,
       message,
@@ -40,6 +45,10 @@ export class NotificationService {
 
     const subject = this.getOrCreateSubject(recipientId);
     subject.next(notification);
+
+    this.logger.log(
+      `알림 생성 완료: 알림 ID ${notification.id}, 메시지: ${message}`,
+    );
 
     return notification;
   }

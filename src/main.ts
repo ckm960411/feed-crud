@@ -5,7 +5,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, {
+    cors: true,
+    logger: ['log', 'warn', 'error', 'debug', 'verbose'], // 모든 로그 레벨 활성화
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

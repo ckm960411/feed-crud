@@ -34,6 +34,11 @@ export class RestaurantBookmarkService {
           bookmarks: {
             user: true,
           },
+          baropots: {
+            baropotParticipants: {
+              user: true,
+            },
+          },
         },
       },
     });

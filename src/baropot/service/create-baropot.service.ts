@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import { DataSource } from 'typeorm';
 import { CreateBaropotReqDto } from '../dto/request/create-baropot.req.dto';
@@ -12,7 +11,6 @@ import { FindBaropotService } from 'src/baropot/service/find-baropot.service';
 @Injectable()
 export class CreateBaropotService {
   constructor(
-    @InjectRepository(Baropot)
     private readonly dataSource: DataSource,
     private readonly findBaropotService: FindBaropotService,
   ) {}

@@ -10,6 +10,7 @@ import { FeedModule } from './feed/feed.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { AwsModule } from './aws/aws.module';
 import { BaropotModule } from './baropot/baropot.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { BaropotModule } from './baropot/baropot.module';
     RestaurantModule,
     AwsModule,
     BaropotModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [AppService],

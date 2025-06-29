@@ -15,6 +15,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { RestaurantReservation } from 'src/entities/restaurant/restaurant-reservation.entity';
 import { RestaurantReservationService } from './service/restaurant-reservation.service';
 import { RestaurantReservationCompletionService } from './service/restaurant-reservation-completion.service';
+import { CouponModule } from 'src/coupon/coupon.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RestaurantReservationCompletionService } from './service/restaurant-res
       RestaurantReservation,
     ]),
     NotificationModule,
+    CouponModule,
   ],
   controllers: [RestaurantController],
   providers: [

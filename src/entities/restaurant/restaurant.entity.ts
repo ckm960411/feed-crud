@@ -9,6 +9,7 @@ import { RestaurantPhoto } from './restaurant-photo.entity';
 import { RestaurantBookmark } from './restaurant-bookmark.entity';
 import { RestaurantReview } from './restaurant-review.entity';
 import { Baropot } from '../baropot/baropot.entity';
+import { RestaurantReservation } from './restaurant-reservation.entity';
 
 @Entity()
 export class Restaurant extends BaseEntity {
@@ -140,4 +141,10 @@ export class Restaurant extends BaseEntity {
 
   @OneToMany(() => Baropot, (baropot) => baropot.restaurant)
   baropots: Baropot[];
+
+  @OneToMany(
+    () => RestaurantReservation,
+    (reservation) => reservation.restaurant,
+  )
+  reservations: RestaurantReservation[];
 }

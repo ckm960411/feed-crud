@@ -9,10 +9,10 @@ import { RestaurantReview } from 'src/entities/restaurant/restaurant-review.enti
 import { RestaurantReviewPhoto } from 'src/entities/restaurant/restaurant-review-photo.entity';
 import { RestaurantTag } from 'src/entities/restaurant/restaurant-tag.entity';
 import { RestaurantToRestaurantTag } from 'src/entities/restaurant/restaurant-to-restaurant-tag.entity';
-import { User } from 'src/auth/decorators/user.decorator';
 import { RestaurantReviewService } from './service/restaurant-review.service';
 import { RestaurantBookmarkService } from './service/restaurant-bookmark.service';
 import { NotificationModule } from 'src/notification/notification.module';
+import { RestaurantReservation } from 'src/entities/restaurant/restaurant-reservation.entity';
 
 @Module({
   imports: [
@@ -24,7 +24,7 @@ import { NotificationModule } from 'src/notification/notification.module';
       RestaurantReviewPhoto,
       RestaurantTag,
       RestaurantToRestaurantTag,
-      User,
+      RestaurantReservation,
     ]),
     NotificationModule,
   ],

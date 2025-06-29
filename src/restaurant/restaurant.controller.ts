@@ -26,6 +26,8 @@ import { UpdateRestaurantReviewReqDto } from './dto/request/upate-restaurant-rev
 import { UpdateRestaurantReqDto } from './dto/request/update-restaurant.req.dto';
 import { RestaurantBookmarkService } from './service/restaurant-bookmark.service';
 import { FindAllRestaurantsReqQuery } from './dto/request/find-all-restaurants.req.query';
+import { CreateRestaurantReservationReqDto } from './dto/request/create-restaurant-reservation.req.dto';
+import { RestaurantReservationService } from './service/restaurant-reservation.service';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -34,6 +36,7 @@ export class RestaurantController {
     private readonly restaurantService: RestaurantService,
     private readonly restaurantReviewService: RestaurantReviewService,
     private readonly restaurantBookmarkService: RestaurantBookmarkService,
+    private readonly restaurantReservationService: RestaurantReservationService,
   ) {}
 
   @ApiOperation({
@@ -281,6 +284,24 @@ export class RestaurantController {
     return this.restaurantBookmarkService.deleteBookmarkRestaurant({
       userId,
       restaurantId,
+    });
+  }
+
+  @ApiOperation({
+    summary: '맛집 예약',
+    description: '맛집을 예약합니다.',
+  })
+  @Post(':restaurantId/reservations')
+  @UseGuards(JwtAuthGuard)
+  async createRestaurantReservation(
+    @UserDecorator('id') userId: number,
+    @Param('restaurantId') restaurantId: number,
+    @Body() dto: CreateRestaurantReservationReqDto,
+  ) {
+    return this.restaurantReservationService.createRestaurantReservation({
+      userId,
+      restaurantId,
+      dto,
     });
   }
 }

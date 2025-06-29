@@ -25,7 +25,7 @@ export class FindAllBaropotReqQuery {
   @IsArray()
   @IsEnum(BaropotStatus, { each: true })
   @IsOptional()
-  statusList?: BaropotStatus[] = [BaropotStatus.OPEN];
+  statusList?: BaropotStatus[];
 
   @ApiProperty({
     description: '바로팟 맛집 타이틀 검색',

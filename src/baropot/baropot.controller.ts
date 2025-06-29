@@ -31,6 +31,7 @@ import { HandleParticipantRequestReqDto } from './dto/request/handle-participant
 import { UpdateBaropotStatusService } from './service/update-baropot-status.service';
 import { UpdateBaropotStatusReqDto } from './dto/request/update-baropot-status.req.dto';
 import { FindBaropotService } from './service/find-baropot.service';
+import { BaropotStatus } from 'src/types/enum/baropot-status.enum';
 
 @ApiTags('바로팟')
 @Controller('baropots')
@@ -54,10 +55,33 @@ export class BaropotController {
   })
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
-  async findAllBaropots(@Query() query: FindAllBaropotReqQuery) {
+  async findAllBaropots(@Query() inputQuery: FindAllBaropotReqQuery) {
+    const query: FindAllBaropotReqQuery = {
+      statusList: [BaropotStatus.OPEN], // 바로팟 기본 목록 조회는 기본으로 OPEN 상태의 바로팟만 조회합니다.
+      ...inputQuery,
+    };
+
     return this.findBaropotService.findAllBaropots({
       query,
     });
+  }
+
+  @ApiOperation({
+    summary: '나의 바로팟 목록 조회',
+    description: '나의 바로팟 목록을 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '나의 바로팟 목록 조회 성공 (FindBaropotResDto[])',
+    type: [FindBaropotResDto],
+  })
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async findMyBaropots(
+    @Query() query: FindAllBaropotReqQuery,
+    @User('id') userId: number,
+  ) {
+    return this.findBaropotService.findAllBaropots({ query, userId });
   }
 
   @ApiOperation({

@@ -28,6 +28,7 @@ import { RestaurantBookmarkService } from './service/restaurant-bookmark.service
 import { FindAllRestaurantsReqQuery } from './dto/request/find-all-restaurants.req.query';
 import { CreateRestaurantReservationReqDto } from './dto/request/create-restaurant-reservation.req.dto';
 import { RestaurantReservationService } from './service/restaurant-reservation.service';
+import { RestaurantReservationCompletionService } from './service/restaurant-reservation-completion.service';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -37,6 +38,7 @@ export class RestaurantController {
     private readonly restaurantReviewService: RestaurantReviewService,
     private readonly restaurantBookmarkService: RestaurantBookmarkService,
     private readonly restaurantReservationService: RestaurantReservationService,
+    private readonly restaurantReservationCompletionService: RestaurantReservationCompletionService,
   ) {}
 
   @ApiOperation({
@@ -291,6 +293,10 @@ export class RestaurantController {
     summary: '맛집 예약',
     description: '맛집을 예약합니다.',
   })
+  @ApiResponse({
+    status: 201,
+    description: '맛집 예약 성공',
+  })
   @Post(':restaurantId/reservations')
   @UseGuards(JwtAuthGuard)
   async createRestaurantReservation(
@@ -303,5 +309,16 @@ export class RestaurantController {
       restaurantId,
       dto,
     });
+  }
+
+  @Post('/reservations/complete')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: '예약 완료 처리 (테스트용)',
+    description: '수동으로 예약 완료 처리를 실행합니다. (개발/테스트용)',
+  })
+  async completeReservation() {
+    await this.restaurantReservationCompletionService.manuallyCompleteExpiredReservations();
+    return { message: '예약 완료 처리 작업이 실행되었습니다.' };
   }
 }

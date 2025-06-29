@@ -14,6 +14,7 @@ import { RestaurantBookmarkService } from './service/restaurant-bookmark.service
 import { NotificationModule } from 'src/notification/notification.module';
 import { RestaurantReservation } from 'src/entities/restaurant/restaurant-reservation.entity';
 import { RestaurantReservationService } from './service/restaurant-reservation.service';
+import { RestaurantReservationCompletionService } from './service/restaurant-reservation-completion.service';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { RestaurantReservationService } from './service/restaurant-reservation.s
     RestaurantReviewService,
     RestaurantBookmarkService,
     RestaurantReservationService,
+    RestaurantReservationCompletionService,
   ],
 })
 export class RestaurantModule {}

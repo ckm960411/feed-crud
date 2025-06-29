@@ -12,7 +12,10 @@ export class RestaurantReservation extends BaseEntity {
   @Column()
   time: string; // HH:mm
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: RestaurantReservationStatus,
+  })
   status: RestaurantReservationStatus;
 
   @Column({ nullable: true })

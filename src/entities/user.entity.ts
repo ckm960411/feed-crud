@@ -10,13 +10,10 @@ import { RestaurantReview } from './restaurant/restaurant-review.entity';
 import { Notification } from './notification.entity';
 import { BaropotParticipant } from './baropot/baropot-participant.entity';
 import { RestaurantReservation } from './restaurant/restaurant-reservation.entity';
+import { SigninMethod } from 'src/auth/types/signin-method.enum';
 
 @Entity()
 export class User extends BaseEntity {
-  @ApiProperty({
-    description: '유저 이름',
-    example: '홍길동',
-  })
   @Column()
   name: string;
 
@@ -25,6 +22,16 @@ export class User extends BaseEntity {
 
   @Column()
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: Object.values(SigninMethod),
+    default: SigninMethod.LOCAL,
+  })
+  provider: SigninMethod;
+
+  @Column({ nullable: true })
+  providerId: string;
 
   @ApiProperty({
     description: '유저가 등록한 맛집 목록',

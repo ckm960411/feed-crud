@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
@@ -31,6 +32,13 @@ import { CouponModule } from './coupon/coupon.module';
         database: configService.get('POSTGRES_DB'),
         entities: [__dirname + '/**/*.entity.{js,ts}'],
         synchronize: true,
+      }),
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService) => ({
+        uri: configService.get('MONGODB_URI'),
       }),
     }),
     AuthModule,

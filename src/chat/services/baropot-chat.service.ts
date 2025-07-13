@@ -15,6 +15,7 @@ import { BaropotChatMessage } from '../schemas/baropot-chat-message.schema';
 import { CreateBaropotChatReqDto } from '../dto/request/create-baropot-chat.req.dto';
 import { Baropot } from 'src/entities/baropot/baropot.entity';
 import { BaropotStatus } from 'src/types/enum/baropot-status.enum';
+import { FindOneBaropotChatResDto } from './dto/response/find-one-baropot-chat.res.dto';
 
 @Injectable()
 export class BaropotChatService {
@@ -95,4 +96,45 @@ export class BaropotChatService {
 
     return savedChatRoom.id;
   }
+
+  async findChatRoom(baropotChatRoomId: number, userId: number) {
+    const chatRoom = await this.baropotChatRoomRepository.findOne({
+      where: { id: baropotChatRoomId },
+      relations: {
+        baropot: {
+          baropotParticipants: {
+            user: true,
+          },
+          restaurant: true,
+        },
+      },
+    });
+
+    if (!chatRoom) {
+      throw new NotFoundException(
+        `바로팟 채팅방을 찾을 수 없습니다. (ID: ${baropotChatRoomId})`,
+      );
+    }
+
+    // userId가 제공된 경우 읽지 않은 메시지 수 추가
+    const unreadCount = await this.getUnreadCount(chatRoom.id, userId);
+
+    return new FindOneBaropotChatResDto(chatRoom, unreadCount);
+  }
+
+  // 읽지 않은 메시지 수 조회
+  private async getUnreadCount(
+    baropotChatRoomId: number,
+    userId: number,
+  ): Promise<number> {
+    const unreadMessages = await this.baropotChatMessageModel.find({
+      baropotChatRoomId,
+      senderId: { $ne: userId }, // 자신이 보낸 메시지 제외
+      'readBy.userId': { $ne: userId.toString() }, // 읽지 않은 메시지만
+    });
+
+    return unreadMessages.length;
+  }
+
+  // 사용자의 모든 채팅방 조회 (읽지 않은 메시지 수 포함)
 }

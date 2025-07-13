@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { BaseEntity } from '../base.entity';
 import { BaropotStatus } from 'src/types/enum/baropot-status.enum';
 import { ParticipantGender } from 'src/types/enum/participant-gender.enum';
@@ -8,6 +15,7 @@ import { PaymentMethod } from 'src/types/enum/payment-method.enum';
 import { BaropotToBaropotTag } from './baropot-to-baropot-tag.entity';
 import { BaropotParticipant } from './baropot-participant.entity';
 import { Restaurant } from '../restaurant/restaurant.entity';
+import { BaropotChatRoom } from '../baropot-chat-room.entity';
 
 @Entity()
 export class Baropot extends BaseEntity {
@@ -87,4 +95,7 @@ export class Baropot extends BaseEntity {
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.baropots)
   @JoinColumn()
   restaurant: Restaurant;
+
+  @OneToOne(() => BaropotChatRoom, (chatRoom) => chatRoom.baropot)
+  chatRoom: BaropotChatRoom;
 }

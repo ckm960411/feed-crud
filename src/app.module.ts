@@ -12,6 +12,7 @@ import { RestaurantModule } from './restaurant/restaurant.module';
 import { AwsModule } from './aws/aws.module';
 import { BaropotModule } from './baropot/baropot.module';
 import { CouponModule } from './coupon/coupon.module';
+import { BaropotChatModule } from './chat/baropot-chat.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CouponModule } from './coupon/coupon.module';
     AwsModule,
     BaropotModule,
     CouponModule,
+    BaropotChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

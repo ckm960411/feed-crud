@@ -13,28 +13,60 @@ import { JwtService } from '@nestjs/jwt';
 import { WsJwtAuthGuard } from '../../auth/guards/ws-jwt-auth.guard';
 import { BaropotChatService } from '../services/baropot-chat.service';
 import { some } from 'lodash';
+import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { JoinRoomReqDto } from '../dto/request/join-room.req.dto';
+import { LeaveRoomReqDto } from '../dto/request/leave-room.req.dto';
+import { SendMessageReqDto } from '../dto/request/send-message.req.dto';
+import { MarkAsReadReqDto } from '../dto/request/mark-as-read.req.dto';
+import { JoinRoomResDto } from '../dto/response/join-room.res.dto';
+import { LeaveRoomResDto } from '../dto/response/leave-room.res.dto';
+import { SendMessageResDto } from '../dto/response/send-message.res.dto';
+import { MarkAsReadResDto } from '../dto/response/mark-as-read.res.dto';
 
+/**
+ * 바로팟 채팅 웹소켓 이벤트 목록
+ *
+ * 클라이언트와 서버 간 통신에 사용되는 이벤트들을 정의합니다.
+ */
 export enum BAROPOT_CHAT_EVENTS {
-  /** 채팅방 입장 */
+  /** 채팅방 입장 - 클라이언트에서 서버로 */
   JOIN_ROOM = 'JOIN_ROOM',
-  /** 채팅방 나가기 */
+  /** 채팅방 나가기 - 클라이언트에서 서버로 */
   LEAVE_ROOM = 'LEAVE_ROOM',
-  /** 메시지 전송 */
+  /** 메시지 전송 - 클라이언트에서 서버로 */
   SEND_MESSAGE = 'SEND_MESSAGE',
-  /** 새 메시지 수신 */
+  /** 새 메시지 수신 - 서버에서 클라이언트로 */
   NEW_MESSAGE = 'NEW_MESSAGE',
-  /** 메시지 읽음 처리 */
+  /** 메시지 읽음 처리 - 클라이언트에서 서버로 */
   MARK_AS_READ = 'MARK_AS_READ',
-  /** 메시지 읽음 처리 완료 */
+  /** 메시지 읽음 처리 완료 - 서버에서 클라이언트로 */
   MESSAGES_READ = 'MESSAGES_READ',
-  /** 타이핑 중임을 알림 */
-  TYPING = 'TYPING',
-  /** 타이핑 중임을 알림 */
-  USER_TYPING = 'USER_TYPING',
 }
 
+/**
+ * 바로팟 채팅 웹소켓 게이트웨이
+ *
+ * 바로팟 채팅 기능을 위한 웹소켓 게이트웨이입니다.
+ *
+ * ## 연결 방법
+ * - Namespace: /baropot-chat
+ * - 인증: JWT 토큰 필요 (headers.token 에 JWT토큰 전달)
+ *
+ * ## 주요 이벤트
+ * - JOIN_ROOM: 채팅방 입장
+ * - LEAVE_ROOM: 채팅방 나가기
+ * - SEND_MESSAGE: 메시지 전송
+ * - MARK_AS_READ: 메시지 읽음 처리
+ * - NEW_MESSAGE: 새 메시지 수신 (서버에서 클라이언트로)
+ * - MESSAGES_READ: 메시지 읽음 처리 완료 (서버에서 클라이언트로)
+ *
+ * ## 인증
+ * 웹소켓 연결 시 JWT 토큰이 필요하며, 토큰은 다음 방법으로 전달할 수 있습니다:
+ * - headers.token 에 JWT토큰 전달
+ */
 // 바로팟 채팅 웹소켓 게이트웨이 설정
 // namespace: /baropot-chat, CORS 허용
+@ApiTags('바로팟 채팅 웹소켓')
 @WebSocketGateway({
   namespace: '/baropot-chat', // 슬래시 추가
   cors: {
@@ -114,10 +146,24 @@ export class BaropotChatGateway
   // 클라이언트가 채팅방에 입장할 때 호출
   // data: { baropotChatRoomId }
   // 성공 시 해당 소켓을 room_{baropotChatRoomId}에 join
+  @ApiOperation({
+    summary: '채팅방 입장',
+    description:
+      '사용자가 바로팟 채팅방에 입장합니다. 입장 성공 시 해당 소켓이 room_{baropotChatRoomId}에 join됩니다.',
+  })
+  @ApiBody({
+    type: JoinRoomReqDto,
+    description: '채팅방 입장 요청 데이터',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '채팅방 입장 성공',
+    type: JoinRoomResDto,
+  })
   @SubscribeMessage(BAROPOT_CHAT_EVENTS.JOIN_ROOM)
   async handleJoinRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { baropotChatRoomId: number },
+    @MessageBody() data: JoinRoomReqDto,
   ) {
     const userId = client.handshake.auth.userId;
     const { baropotChatRoomId } = data;
@@ -152,10 +198,24 @@ export class BaropotChatGateway
 
   // 클라이언트가 채팅방에서 나갈 때 호출
   // data: { baropotChatRoomId }
+  @ApiOperation({
+    summary: '채팅방 나가기',
+    description:
+      '사용자가 바로팟 채팅방에서 나갑니다. 소켓이 해당 채팅방 룸에서 제거됩니다.',
+  })
+  @ApiBody({
+    type: LeaveRoomReqDto,
+    description: '채팅방 나가기 요청 데이터',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '채팅방 나가기 성공',
+    type: LeaveRoomResDto,
+  })
   @SubscribeMessage(BAROPOT_CHAT_EVENTS.LEAVE_ROOM)
   async handleLeaveRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { baropotChatRoomId: number },
+    @MessageBody() data: LeaveRoomReqDto,
   ) {
     const userId = client.handshake.auth.userId;
     const { baropotChatRoomId } = data;
@@ -169,10 +229,24 @@ export class BaropotChatGateway
 
   // 클라이언트가 메시지를 보낼 때 호출
   // data: { baropotChatRoomId, content }
+  @ApiOperation({
+    summary: '메시지 전송',
+    description:
+      '사용자가 바로팟 채팅방에 메시지를 전송합니다. 메시지는 MongoDB에 저장되고 같은 채팅방의 모든 사용자에게 전송됩니다.',
+  })
+  @ApiBody({
+    type: SendMessageReqDto,
+    description: '메시지 전송 요청 데이터',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '메시지 전송 성공',
+    type: SendMessageResDto,
+  })
   @SubscribeMessage(BAROPOT_CHAT_EVENTS.SEND_MESSAGE)
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { baropotChatRoomId: number; content: string },
+    @MessageBody() data: SendMessageReqDto,
   ) {
     const userId = client.handshake.auth.userId;
     const { baropotChatRoomId, content } = data;
@@ -202,20 +276,26 @@ export class BaropotChatGateway
     }
   }
 
-  // 테스트용 메시지 핸들러 (가드 실행 확인용)
-  @SubscribeMessage('TEST_AUTH')
-  async handleTestAuth(@ConnectedSocket() client: Socket) {
-    this.logger.log('🧪 TEST_AUTH 메시지 수신됨');
-    this.logger.log(`사용자 ID: ${client.handshake.auth.userId}`);
-    return { success: true, userId: client.handshake.auth.userId };
-  }
-
   // 클라이언트가 메시지 읽음 처리를 할 때 호출
   // data: { baropotChatRoomId }
+  @ApiOperation({
+    summary: '메시지 읽음 처리',
+    description:
+      '사용자가 바로팟 채팅방의 메시지를 읽음 처리합니다. 읽음 처리는 MongoDB에 저장됩니다.',
+  })
+  @ApiBody({
+    type: MarkAsReadReqDto,
+    description: '메시지 읽음 처리 요청 데이터',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '메시지 읽음 처리 성공',
+    type: MarkAsReadResDto,
+  })
   @SubscribeMessage(BAROPOT_CHAT_EVENTS.MARK_AS_READ)
   async handleMarkAsRead(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { baropotChatRoomId: number },
+    @MessageBody() data: MarkAsReadReqDto,
   ) {
     const userId = client.handshake.auth.userId;
     const { baropotChatRoomId } = data;

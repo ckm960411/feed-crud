@@ -137,4 +137,94 @@ export class BaropotChatService {
   }
 
   // 사용자의 모든 채팅방 조회 (읽지 않은 메시지 수 포함)
+  async getUserChatRooms(userId: number) {
+    const userBaropots = await this.baropotParticipantRepository.find({
+      where: { user: { id: userId } },
+      relations: ['baropot', 'baropot.chatRoom'],
+    });
+
+    const chatRooms = [];
+
+    for (const participant of userBaropots) {
+      if (participant.baropot.chatRoom) {
+        const unreadCount = await this.getUnreadCount(
+          participant.baropot.chatRoom.id,
+          userId,
+        );
+
+        chatRooms.push({
+          baropotChatRoomId: participant.baropot.chatRoom.id,
+          roomName: participant.baropot.chatRoom.name,
+          baropotTitle: participant.baropot.title,
+          baropotId: participant.baropot.id,
+          unreadCount,
+          isHost: participant.isHost,
+          joinedStatus: participant.joinedStatus,
+        });
+      }
+    }
+
+    return chatRooms;
+  }
+
+  // 메시지 전송
+  async sendMessage(
+    baropotChatRoomId: number,
+    senderId: number,
+    content: string,
+  ) {
+    // 1. PostgreSQL에서 사용자 정보 조회
+    const user = await this.userRepository.findOne({ where: { id: senderId } });
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
+
+    // 2. PostgreSQL에서 채팅방 정보 조회
+    const room = await this.baropotChatRoomRepository.findOne({
+      where: { id: baropotChatRoomId },
+    });
+    if (!room) throw new NotFoundException('채팅방을 찾을 수 없습니다.');
+
+    // 3. MongoDB에 메시지 저장
+    const message = new this.baropotChatMessageModel({
+      messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      baropotChatRoomId,
+      senderId,
+      senderName: user.name,
+      content,
+      timestamp: new Date(),
+      readBy: [], // 새 메시지는 아무도 읽지 않음
+    });
+    await message.save();
+
+    return message;
+  }
+
+  // 메시지 읽음 처리
+  async markAsRead(baropotChatRoomId: number, userId: number) {
+    // MongoDB에서 해당 사용자가 읽지 않은 메시지들을 읽음 처리
+    await this.baropotChatMessageModel.updateMany(
+      {
+        baropotChatRoomId,
+        senderId: { $ne: userId },
+        'readBy.userId': { $ne: userId.toString() },
+      },
+      {
+        $push: {
+          readBy: {
+            userId: userId.toString(),
+            readAt: new Date(),
+          },
+        },
+      },
+    );
+  }
+
+  // 메시지 히스토리 조회
+  async getMessages(baropotChatRoomId: number, limit = 50, offset = 0) {
+    return this.baropotChatMessageModel
+      .find({ baropotChatRoomId })
+      .sort({ timestamp: -1 })
+      .skip(offset)
+      .limit(limit)
+      .exec();
+  }
 }

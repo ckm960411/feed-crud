@@ -26,6 +26,7 @@ export class WsJwtAuthGuard implements CanActivate {
       );
 
       const token =
+        (client.handshake.query.token as string) ||
         (client.handshake.headers.token as string) ||
         client.handshake.headers.authorization?.replace('Bearer ', '');
 

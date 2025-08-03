@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { KakaoLocalService } from '../../external-api/kakao-local.service';
 import { RestaurantSyncService } from '../../external-api/service/restaurant-sync.service';
 import { FindAllRestaurantsReqQuery } from '../dto/request/find-all-restaurants.req.query';
+import { KakaoPlace } from 'src/types/kakao-api.interface';
 
 @Injectable()
 export class RestaurantBackgroundSyncService {
@@ -20,18 +21,18 @@ export class RestaurantBackgroundSyncService {
   async syncInBackground(query: FindAllRestaurantsReqQuery): Promise<void> {
     // 동기화 키 생성 (중복 방지용)
     const syncKey = this.generateSyncKey(query);
-    
+
     if (this.syncInProgress.has(syncKey)) {
       this.logger.debug(`Sync already in progress for key: ${syncKey}`);
+      // 이미 진행 중인 동기화가 완료될 때까지 대기
+      while (this.syncInProgress.has(syncKey)) {
+        await this.sleep(100);
+      }
       return;
     }
 
-    // 백그라운드에서 비동기 실행 (사용자 응답에 영향 없음)
-    setImmediate(() => {
-      this.performBackgroundSync(syncKey, query).catch((error) => {
-        this.logger.error(`Background sync failed for key: ${syncKey}`, error);
-      });
-    });
+    // 동기화 완료까지 대기
+    await this.performBackgroundSync(syncKey, query);
   }
 
   /**
@@ -42,10 +43,10 @@ export class RestaurantBackgroundSyncService {
     query: FindAllRestaurantsReqQuery,
   ): Promise<void> {
     this.syncInProgress.add(syncKey);
-    
+
     try {
       this.logger.log(`Starting background sync for: ${syncKey}`);
-      
+
       // 1. 검색 키워드 생성
       const searchKeyword = this.buildSearchKeyword(query);
       if (!searchKeyword) {
@@ -80,20 +81,22 @@ export class RestaurantBackgroundSyncService {
       lat: query.lat!,
       lng: query.lng!,
     };
-    
+
     const radius = query.radius || 5000; // 기본 5km
 
-    this.logger.debug(`Syncing by location: ${location.lat}, ${location.lng} (${radius}m)`);
+    this.logger.debug(
+      `Syncing by location: ${location.lat}, ${location.lng} (${radius}m)`,
+    );
 
     // 위치 기반으로 여러 키워드 검색
     const locationKeywords = [searchKeyword, '맛집', '음식점'];
-    
+
     for (const keyword of locationKeywords) {
       try {
-        const kakaoResponse = await this.kakaoLocalService.searchRestaurants(
-          keyword,
-          { ...location, radius },
-        );
+        const kakaoResponse = await this.kakaoLocalService.searchRestaurants({
+          query: keyword,
+          location: { ...location, radius },
+        });
 
         if (kakaoResponse.documents.length > 0) {
           // 결과가 있으면 동기화 서비스를 통해 DB에 저장
@@ -115,8 +118,10 @@ export class RestaurantBackgroundSyncService {
     this.logger.debug(`Syncing by keyword: ${searchKeyword}`);
 
     try {
-      const kakaoResponse = await this.kakaoLocalService.searchRestaurants(searchKeyword);
-      
+      const kakaoResponse = await this.kakaoLocalService.searchRestaurants({
+        query: searchKeyword,
+      });
+
       if (kakaoResponse.documents.length > 0) {
         await this.saveKakaoResults(kakaoResponse.documents);
       }
@@ -126,21 +131,16 @@ export class RestaurantBackgroundSyncService {
   }
 
   /**
-   * 카카오 검색 결과를 DB에 저장
+   * 카카오 검색 결과를 DB에 저장 (직접 저장, API 재호출 없음)
    */
-  private async saveKakaoResults(kakaoPlaces: any[]): Promise<void> {
-    // 기존 동기화 서비스의 processRestaurant 로직을 재사용
-    // 하지만 간소화된 버전으로 구현
-    
+  private async saveKakaoResults(kakaoPlaces: KakaoPlace[]): Promise<void> {
     this.logger.debug(`Saving ${kakaoPlaces.length} places to DB`);
-    
-    // 여기서는 간단히 syncService의 로직을 호출
-    // 실제로는 개별 처리 로직을 구현할 수도 있음
+
     try {
-      // 임시로 간단한 키워드로 동기화 서비스 호출
-      await this.restaurantSyncService.syncPopularRestaurants(['맛집']);
+      // 카카오 데이터를 직접 DB에 저장 (재호출 없이)
+      await this.restaurantSyncService.saveKakaoPlacesDirectly(kakaoPlaces);
     } catch (error) {
-      this.logger.warn('Failed to save kakao results via sync service', error);
+      this.logger.warn('Failed to save kakao results directly', error);
     }
   }
 
@@ -196,12 +196,12 @@ export class RestaurantBackgroundSyncService {
    */
   private generateSyncKey(query: FindAllRestaurantsReqQuery): string {
     const parts: string[] = [];
-    
+
     if (query.name) parts.push(`name:${query.name}`);
     if (query.address) parts.push(`addr:${query.address}`);
     if (query.category) parts.push(`cat:${query.category}`);
     if (query.lat && query.lng) parts.push(`loc:${query.lat},${query.lng}`);
-    
+
     return parts.join('|') || 'default';
   }
 
@@ -209,7 +209,7 @@ export class RestaurantBackgroundSyncService {
    * 지연 함수 (Rate Limiting 방지)
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

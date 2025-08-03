@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Restaurant } from '../../entities/restaurant/restaurant.entity';
 import { KakaoLocalService } from '../kakao-local.service';
 import { KakaoToRestaurantMapper } from '../mapper/kakao-to-restaurant.mapper';
+import { KakaoPlace } from '../../types/kakao-api.interface';
 
 export interface SyncResult {
   totalFetched: number;
@@ -53,8 +54,9 @@ export class RestaurantSyncService {
         try {
           this.logger.log(`Searching for: ${query}`);
 
-          const searchResponse =
-            await this.kakaoLocalService.searchRestaurants(query);
+          const searchResponse = await this.kakaoLocalService.searchRestaurants(
+            { query },
+          );
           const kakaoPlaces = searchResponse.documents;
 
           this.logger.log(
@@ -194,10 +196,10 @@ export class RestaurantSyncService {
 
     try {
       for (const query of searchQueries) {
-        const searchResponse = await this.kakaoLocalService.searchRestaurants(
+        const searchResponse = await this.kakaoLocalService.searchRestaurants({
           query,
-          { ...location, radius },
-        );
+          location: { ...location, radius },
+        });
 
         const restaurantData = this.mapper.mapToRestaurants(
           searchResponse.documents,
@@ -252,5 +254,57 @@ export class RestaurantSyncService {
     });
 
     return latestRestaurant?.lastSyncedAt || null;
+  }
+
+  /**
+   * 카카오 Places 데이터를 직접 DB에 저장 (API 재호출 없이)
+   * @param kakaoPlaces 카카오 API 응답 데이터
+   * @returns 동기화 결과
+   */
+  async saveKakaoPlacesDirectly(
+    kakaoPlaces: KakaoPlace[],
+  ): Promise<SyncResult> {
+    this.logger.log(
+      `Directly saving ${kakaoPlaces.length} places from Kakao API`,
+    );
+
+    const result: SyncResult = {
+      totalFetched: kakaoPlaces.length,
+      newRestaurants: 0,
+      updatedRestaurants: 0,
+      skippedRestaurants: 0,
+      errors: [],
+    };
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 카카오 데이터를 Restaurant 엔티티로 변환
+      const restaurantData = this.mapper.mapToRestaurants(kakaoPlaces);
+
+      // 각 맛집 데이터 처리
+      for (const data of restaurantData) {
+        try {
+          await this.processRestaurant(queryRunner, data, result);
+        } catch (error) {
+          const errorMsg = `Error processing restaurant ${data.name}: ${error.message}`;
+          this.logger.error(errorMsg);
+          result.errors.push(errorMsg);
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      this.logger.log('Direct save completed successfully', result);
+
+      return result;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error('Direct save failed', error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

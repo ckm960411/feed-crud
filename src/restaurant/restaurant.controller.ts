@@ -67,7 +67,8 @@ export class RestaurantController {
 
   @ApiOperation({
     summary: '맛집 목록 조회 V2 (카카오 API 연동)',
-    description: '카카오 API로 실시간 데이터를 보강하여 맛집 목록을 조회합니다.',
+    description:
+      '카카오 API로 실시간 데이터를 보강하여 맛집 목록을 조회합니다.',
   })
   @ApiQuery({
     type: FindAllRestaurantsReqQuery,
@@ -84,10 +85,10 @@ export class RestaurantController {
     @UserDecorator() user: User | null,
     @Query() query: FindAllRestaurantsReqQuery,
   ): Promise<FindAllRestaurantsResDto[]> {
-    // 1. 백그라운드에서 카카오 API 데이터 동기화 시작
-    this.restaurantBackgroundSyncService.syncInBackground(query);
-    
-    // 2. 우리 DB에서 검색 결과 즉시 반환
+    // 1. 카카오 API 데이터 동기화 완료까지 대기
+    await this.restaurantBackgroundSyncService.syncInBackground(query);
+
+    // 2. 동기화 완료 후 우리 DB에서 검색 결과 반환
     return this.restaurantService.findAll({ userId: user?.id, query });
   }
 
@@ -102,7 +103,11 @@ export class RestaurantController {
       type: 'object',
       properties: {
         inProgress: { type: 'number', example: 2 },
-        keys: { type: 'array', items: { type: 'string' }, example: ['name:강남맛집', 'loc:37.5,127.0'] },
+        keys: {
+          type: 'array',
+          items: { type: 'string' },
+          example: ['name:강남맛집', 'loc:37.5,127.0'],
+        },
       },
     },
   })

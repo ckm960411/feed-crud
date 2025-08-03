@@ -67,10 +67,13 @@ export class KakaoLocalService {
    * @param location 위치 정보 (선택사항)
    * @returns 음식점 검색 결과
    */
-  async searchRestaurants(
-    query: string,
-    location?: { lat: number; lng: number; radius?: number },
-  ): Promise<KakaoSearchResponse> {
+  async searchRestaurants({
+    query,
+    location,
+  }: {
+    query: string;
+    location?: { lat: number; lng: number; radius?: number };
+  }): Promise<KakaoSearchResponse> {
     const searchParams: KakaoSearchParams = {
       query: `${query} 맛집`, // 맛집 키워드 추가로 더 정확한 검색
       category_group_code: KAKAO_FOOD_CATEGORIES.KOREAN, // 음식점 카테고리로 필터링

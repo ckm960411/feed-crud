@@ -54,7 +54,7 @@ export class ExternalApiController {
     @Query('lng') lng?: number,
   ): Promise<KakaoSearchResponse> {
     const location = lat && lng ? { lat, lng } : undefined;
-    return this.kakaoLocalService.searchRestaurants(query, location);
+    return this.kakaoLocalService.searchRestaurants({ query, location });
   }
 
   @ApiOperation({
@@ -77,7 +77,7 @@ export class ExternalApiController {
   async checkKakaoHealth() {
     // 간단한 검색으로 API 연결 테스트
     try {
-      await this.kakaoLocalService.searchRestaurants('테스트');
+      await this.kakaoLocalService.searchRestaurants({ query: '테스트' });
       return {
         status: 'OK',
         service: 'Kakao Local API',

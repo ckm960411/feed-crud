@@ -29,6 +29,7 @@ import { FindAllRestaurantsReqQuery } from './dto/request/find-all-restaurants.r
 import { CreateRestaurantReservationReqDto } from './dto/request/create-restaurant-reservation.req.dto';
 import { RestaurantReservationService } from './service/restaurant-reservation.service';
 import { RestaurantReservationCompletionService } from './service/restaurant-reservation-completion.service';
+import { RestaurantBackgroundSyncService } from './service/restaurant-background-sync.service';
 
 @ApiTags('맛집')
 @Controller('restaurants')
@@ -39,6 +40,7 @@ export class RestaurantController {
     private readonly restaurantBookmarkService: RestaurantBookmarkService,
     private readonly restaurantReservationService: RestaurantReservationService,
     private readonly restaurantReservationCompletionService: RestaurantReservationCompletionService,
+    private readonly restaurantBackgroundSyncService: RestaurantBackgroundSyncService,
   ) {}
 
   @ApiOperation({
@@ -61,6 +63,52 @@ export class RestaurantController {
     @Query() query: FindAllRestaurantsReqQuery,
   ): Promise<FindAllRestaurantsResDto[]> {
     return this.restaurantService.findAll({ userId: user?.id, query });
+  }
+
+  @ApiOperation({
+    summary: '맛집 목록 조회 V2 (카카오 API 연동)',
+    description: '카카오 API로 실시간 데이터를 보강하여 맛집 목록을 조회합니다.',
+  })
+  @ApiQuery({
+    type: FindAllRestaurantsReqQuery,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '맛집 목록 조회 성공 (카카오 데이터 보강)',
+    isArray: true,
+    type: FindAllRestaurantsResDto,
+  })
+  @Get('v2')
+  @UseGuards(OptionalJwtAuthGuard)
+  async findAllV2(
+    @UserDecorator() user: User | null,
+    @Query() query: FindAllRestaurantsReqQuery,
+  ): Promise<FindAllRestaurantsResDto[]> {
+    // 1. 백그라운드에서 카카오 API 데이터 동기화 시작
+    this.restaurantBackgroundSyncService.syncInBackground(query);
+    
+    // 2. 우리 DB에서 검색 결과 즉시 반환
+    return this.restaurantService.findAll({ userId: user?.id, query });
+  }
+
+  @ApiOperation({
+    summary: '백그라운드 동기화 상태 확인',
+    description: '현재 진행 중인 백그라운드 동기화 작업 상태를 확인합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '동기화 상태 조회 성공',
+    schema: {
+      type: 'object',
+      properties: {
+        inProgress: { type: 'number', example: 2 },
+        keys: { type: 'array', items: { type: 'string' }, example: ['name:강남맛집', 'loc:37.5,127.0'] },
+      },
+    },
+  })
+  @Get('v2/sync-status')
+  async getSyncStatus() {
+    return this.restaurantBackgroundSyncService.getSyncStatus();
   }
 
   @ApiOperation({

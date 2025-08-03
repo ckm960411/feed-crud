@@ -16,6 +16,8 @@ import { RestaurantReservation } from 'src/entities/restaurant/restaurant-reserv
 import { RestaurantReservationService } from './service/restaurant-reservation.service';
 import { RestaurantReservationCompletionService } from './service/restaurant-reservation-completion.service';
 import { CouponModule } from 'src/coupon/coupon.module';
+import { RestaurantBackgroundSyncService } from './service/restaurant-background-sync.service';
+import { ExternalApiModule } from 'src/external-api/external-api.module';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { CouponModule } from 'src/coupon/coupon.module';
     ]),
     NotificationModule,
     CouponModule,
+    ExternalApiModule, // 카카오 API 서비스 사용을 위해 추가
   ],
   controllers: [RestaurantController],
   providers: [
@@ -39,6 +42,7 @@ import { CouponModule } from 'src/coupon/coupon.module';
     RestaurantBookmarkService,
     RestaurantReservationService,
     RestaurantReservationCompletionService,
+    RestaurantBackgroundSyncService, // 백그라운드 동기화 서비스 추가
   ],
 })
 export class RestaurantModule {}

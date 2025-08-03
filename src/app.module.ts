@@ -13,6 +13,7 @@ import { AwsModule } from './aws/aws.module';
 import { BaropotModule } from './baropot/baropot.module';
 import { CouponModule } from './coupon/coupon.module';
 import { BaropotChatModule } from './chat/baropot-chat.module';
+import { ExternalApiModule } from './external-api/external-api.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { BaropotChatModule } from './chat/baropot-chat.module';
     BaropotModule,
     CouponModule,
     BaropotChatModule,
+    ExternalApiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

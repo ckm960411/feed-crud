@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from '../base.entity';
-import { IsEnum, IsNumber, IsString, Matches } from 'class-validator';
+import { IsEnum, IsNumber, IsString, Matches, IsBoolean, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { RestaurantCategory } from 'src/types/enum/restaurant-category.enum';
 import { User } from '../user.entity';
@@ -106,9 +106,43 @@ export class Restaurant extends BaseEntity {
   lastOrderTime: string; // HH:mm
 
   @ApiProperty({
+    description: '외부 API 데이터 여부',
+    example: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  @Column({ default: false })
+  isExternal: boolean;
+
+  @ApiProperty({
+    description: '외부 데이터 출처',
+    example: 'kakao',
+  })
+  @IsString()
+  @IsOptional()
+  @Column({ nullable: true })
+  externalSource: string;
+
+  @ApiProperty({
+    description: '외부 API의 고유 ID',
+    example: '12345678',
+  })
+  @IsString()
+  @IsOptional()
+  @Column({ nullable: true })
+  externalId: string;
+
+  @ApiProperty({
+    description: '마지막 동기화 시간',
+  })
+  @IsOptional()
+  @Column({ nullable: true })
+  lastSyncedAt: Date;
+
+  @ApiProperty({
     description: '맛집 등록 유저',
   })
-  @ManyToOne(() => User, (user) => user.restaurants)
+  @ManyToOne(() => User, (user) => user.restaurants, { nullable: true })
   @JoinColumn()
   user: User;
 

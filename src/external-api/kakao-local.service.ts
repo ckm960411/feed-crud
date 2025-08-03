@@ -15,18 +15,23 @@ export class KakaoLocalService {
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('KAKAO_REST_API_KEY');
-    
+
     if (!this.apiKey) {
       throw new Error('KAKAO_REST_API_KEY is not configured');
     }
+
+    // 환경에 따른 origin 설정
+    const baseUrl =
+      this.configService.get<string>('BASE_URL') || 'http://localhost:8000';
 
     // Axios 인스턴스 생성 및 기본 설정
     this.axiosInstance = axios.create({
       baseURL: 'https://dapi.kakao.com',
       timeout: 10000, // 10초 타임아웃
       headers: {
-        'Authorization': `KakaoAK ${this.apiKey}`,
+        Authorization: `KakaoAK ${this.apiKey}`,
         'Content-Type': 'application/json',
+        KA: `sdk/1.0 os/javascript origin/${baseUrl}`, // 환경별 origin 설정
       },
     });
 
@@ -41,15 +46,16 @@ export class KakaoLocalService {
   async searchPlaces(params: KakaoSearchParams): Promise<KakaoSearchResponse> {
     try {
       this.logger.log(`Searching places with query: ${params.query}`);
-      
+
       const response = await this.axiosInstance.get<KakaoSearchResponse>(
         '/v2/local/search/keyword.json',
-        { params }
+        { params },
       );
 
       this.logger.log(`Found ${response.data.documents.length} places`);
       return response.data;
     } catch (error) {
+      console.log('error: ', error);
       this.logger.error('Failed to search places from Kakao API', error);
       throw new Error(`카카오 API 호출 실패: ${error.message}`);
     }
@@ -63,7 +69,7 @@ export class KakaoLocalService {
    */
   async searchRestaurants(
     query: string,
-    location?: { lat: number; lng: number; radius?: number }
+    location?: { lat: number; lng: number; radius?: number },
   ): Promise<KakaoSearchResponse> {
     const searchParams: KakaoSearchParams = {
       query: `${query} 맛집`, // 맛집 키워드 추가로 더 정확한 검색

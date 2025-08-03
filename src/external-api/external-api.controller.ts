@@ -1,7 +1,16 @@
 import { Controller, Get, Post, Query, Body } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+  ApiBody,
+} from '@nestjs/swagger';
 import { KakaoLocalService } from './kakao-local.service';
-import { RestaurantSyncService, SyncResult } from './service/restaurant-sync.service';
+import {
+  RestaurantSyncService,
+  SyncResult,
+} from './service/restaurant-sync.service';
 import { KakaoSearchResponse } from '../types/kakao-api.interface';
 
 @ApiTags('외부 API 테스트')
@@ -86,7 +95,8 @@ export class ExternalApiController {
 
   @ApiOperation({
     summary: '인기 맛집 데이터 동기화',
-    description: '카카오 API에서 인기 맛집 데이터를 가져와서 내부 DB에 저장합니다.',
+    description:
+      '카카오 API에서 인기 맛집 데이터를 가져와서 내부 DB에 저장합니다.',
   })
   @ApiResponse({
     status: 200,
@@ -117,7 +127,11 @@ export class ExternalApiController {
       properties: {
         lat: { type: 'number', example: 37.497175 },
         lng: { type: 'number', example: 127.027926 },
-        radius: { type: 'number', example: 5000, description: '반경(미터), 기본값: 5000' },
+        radius: {
+          type: 'number',
+          example: 5000,
+          description: '반경(미터), 기본값: 5000',
+        },
       },
       required: ['lat', 'lng'],
     },
@@ -128,10 +142,13 @@ export class ExternalApiController {
   })
   @Post('sync/restaurants-by-location')
   async syncRestaurantsByLocation(
-    @Body() body: { lat: number; lng: number; radius?: number }
+    @Body() body: { lat: number; lng: number; radius?: number },
   ): Promise<SyncResult> {
     const { lat, lng, radius = 5000 } = body;
-    return this.restaurantSyncService.syncRestaurantsByLocation({ lat, lng }, radius);
+    return this.restaurantSyncService.syncRestaurantsByLocation(
+      { lat, lng },
+      radius,
+    );
   }
 
   @ApiOperation({

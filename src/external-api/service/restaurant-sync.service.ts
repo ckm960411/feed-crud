@@ -31,10 +31,10 @@ export class RestaurantSyncService {
    * @returns 동기화 결과
    */
   async syncPopularRestaurants(
-    searchQueries: string[] = ['맛집', '인기맛집', '유명맛집']
+    searchQueries: string[] = ['맛집', '인기맛집', '유명맛집'],
   ): Promise<SyncResult> {
     this.logger.log('Starting restaurant synchronization from Kakao API');
-    
+
     const result: SyncResult = {
       totalFetched: 0,
       newRestaurants: 0,
@@ -52,11 +52,14 @@ export class RestaurantSyncService {
       for (const query of searchQueries) {
         try {
           this.logger.log(`Searching for: ${query}`);
-          
-          const searchResponse = await this.kakaoLocalService.searchRestaurants(query);
+
+          const searchResponse =
+            await this.kakaoLocalService.searchRestaurants(query);
           const kakaoPlaces = searchResponse.documents;
-          
-          this.logger.log(`Found ${kakaoPlaces.length} places for query: ${query}`);
+
+          this.logger.log(
+            `Found ${kakaoPlaces.length} places for query: ${query}`,
+          );
           result.totalFetched += kakaoPlaces.length;
 
           // 카카오 데이터를 Restaurant 엔티티로 변환
@@ -83,8 +86,11 @@ export class RestaurantSyncService {
       }
 
       await queryRunner.commitTransaction();
-      this.logger.log('Restaurant synchronization completed successfully', result);
-      
+      this.logger.log(
+        'Restaurant synchronization completed successfully',
+        result,
+      );
+
       return result;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -101,7 +107,7 @@ export class RestaurantSyncService {
   private async processRestaurant(
     queryRunner: any,
     data: Partial<Restaurant>,
-    result: SyncResult
+    result: SyncResult,
   ): Promise<void> {
     // 이미 존재하는 외부 맛집인지 확인
     const existingRestaurant = await queryRunner.manager.findOne(Restaurant, {
@@ -134,13 +140,16 @@ export class RestaurantSyncService {
       }
     } else {
       // 동일한 이름과 주소를 가진 내부 맛집이 있는지 확인
-      const duplicateRestaurant = await queryRunner.manager.findOne(Restaurant, {
-        where: {
-          name: data.name,
-          address: data.address,
-          isExternal: false, // 내부 등록 맛집만 확인
+      const duplicateRestaurant = await queryRunner.manager.findOne(
+        Restaurant,
+        {
+          where: {
+            name: data.name,
+            address: data.address,
+            isExternal: false, // 내부 등록 맛집만 확인
+          },
         },
-      });
+      );
 
       if (duplicateRestaurant) {
         result.skippedRestaurants++;
@@ -164,10 +173,12 @@ export class RestaurantSyncService {
    */
   async syncRestaurantsByLocation(
     location: { lat: number; lng: number },
-    radius: number = 5000
+    radius: number = 5000,
   ): Promise<SyncResult> {
-    this.logger.log(`Syncing restaurants near location: ${location.lat}, ${location.lng}`);
-    
+    this.logger.log(
+      `Syncing restaurants near location: ${location.lat}, ${location.lng}`,
+    );
+
     const searchQueries = ['맛집', '음식점'];
     const result: SyncResult = {
       totalFetched: 0,
@@ -185,10 +196,12 @@ export class RestaurantSyncService {
       for (const query of searchQueries) {
         const searchResponse = await this.kakaoLocalService.searchRestaurants(
           query,
-          { ...location, radius }
+          { ...location, radius },
         );
-        
-        const restaurantData = this.mapper.mapToRestaurants(searchResponse.documents);
+
+        const restaurantData = this.mapper.mapToRestaurants(
+          searchResponse.documents,
+        );
         result.totalFetched += searchResponse.documents.length;
 
         for (const data of restaurantData) {
@@ -212,7 +225,7 @@ export class RestaurantSyncService {
    * 지연 함수 (Rate Limiting 방지)
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
